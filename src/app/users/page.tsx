@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Search, Package } from "lucide-react";
+import { PlusCircle, Search, Package, Upload } from "lucide-react";
 import Link from 'next/link';
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 // Mock data for demonstration
 const users = [
@@ -17,32 +18,52 @@ const users = [
 
 const getInitials = (name: string) => {
   const names = name.split(' ');
-  if (names.length === 1) return names[0][0].toUpperCase();
-  return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+  if (names.length === 1) return names[0]?.[0]?.toUpperCase() ?? '';
+  if (names.length > 1) return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+  return '';
 }
 
+// Make the component a client component to use hooks
+"use client";
+
 export default function UsersPage() {
+  const { toast } = useToast(); // Initialize toast
+
+  const handleBulkUploadClick = () => {
+    // Placeholder function for bulk upload
+    toast({
+        title: "Función no implementada",
+        description: "La carga masiva de usuarios estará disponible pronto.",
+        variant: "default"
+    });
+    // In a real app, this might open a modal or navigate to an upload page
+  };
+
+
   return (
     <div className="flex flex-col h-full p-4 md:p-8">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">User Management</h1>
-         {/* Add User button if needed later
-         <Link href="/users/add" passHref>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add New User
-          </Button>
-        </Link>
-        */}
+      <header className="mb-6 flex items-center justify-between gap-4 flex-wrap">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Gestión de Usuarios</h1>
+        <div className="flex gap-2 flex-wrap">
+            <Link href="/users/add" passHref>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Usuario
+                </Button>
+            </Link>
+            <Button variant="outline" onClick={handleBulkUploadClick}>
+                <Upload className="mr-2 h-4 w-4" /> Carga Masiva de Usuarios
+            </Button>
+        </div>
       </header>
 
       <div className="mb-4 flex items-center gap-2">
         <Input
-          placeholder="Search by Name, Email, Department..."
+          placeholder="Buscar por Nombre, Email, Departamento..."
           className="max-w-sm"
         />
          <Button variant="outline" size="icon">
             <Search className="h-4 w-4" />
-             <span className="sr-only">Search</span>
+             <span className="sr-only">Buscar</span>
          </Button>
       </div>
 
@@ -50,11 +71,11 @@ export default function UsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Assigned Items</TableHead>
-              <TableHead><span className="sr-only">Actions</span></TableHead>
+              <TableHead>Departamento</TableHead>
+              <TableHead>Equipos Asignados</TableHead>
+              <TableHead><span className="sr-only">Acciones</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -80,7 +101,7 @@ export default function UsersPage() {
                 </TableCell>
                 <TableCell>
                    <Link href={`/users/${user.id}`} passHref>
-                     <Button variant="ghost" size="sm">View Details</Button>
+                     <Button variant="ghost" size="sm">Ver Detalles</Button>
                    </Link>
                 </TableCell>
               </TableRow>
@@ -88,7 +109,7 @@ export default function UsersPage() {
              {users.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  No users found.
+                  No se encontraron usuarios.
                 </TableCell>
               </TableRow>
             )}
@@ -98,3 +119,4 @@ export default function UsersPage() {
     </div>
   );
 }
+```

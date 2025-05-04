@@ -27,19 +27,19 @@ import {
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, PackagePlus } from 'lucide-react'; // Changed icon
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  type: z.string().min(1, { message: "Please select an item type." }),
+  type: z.string().min(1, { message: "Por favor, selecciona un tipo de equipo." }),
   serialNumber: z.string().optional(),
-  barcode: z.string().min(5, { message: "Barcode must be at least 5 characters."}).max(50),
+  barcode: z.string().min(5, { message: "El código de barras debe tener al menos 5 caracteres."}).max(50),
   purchaseDate: z.string().optional(), // Consider using a date picker component later
   warrantyEndDate: z.string().optional(), // Consider using a date picker component later
   notes: z.string().optional(),
-  status: z.enum(["In Stock", "Assigned", "Maintenance", "Disposed"]),
+  status: z.enum(["En Stock", "Asignado", "Mantenimiento", "Retirado"]), // Adjusted status options in Spanish
 });
 
 export default function AddInventoryItemPage() {
@@ -57,7 +57,7 @@ export default function AddInventoryItemPage() {
       purchaseDate: "",
       warrantyEndDate: "",
       notes: "",
-      status: "In Stock",
+      status: "En Stock", // Default status in Spanish
     },
   });
 
@@ -69,14 +69,14 @@ export default function AddInventoryItemPage() {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Simulate asset tag generation (replace with actual logic)
-    const generatedAssetTag = `ASSET-${Math.floor(1000 + Math.random() * 9000)}`;
+    const generatedAssetTag = `ACTIVO-${Math.floor(1000 + Math.random() * 9000)}`;
     console.log("Generated Asset Tag:", generatedAssetTag);
 
     setIsSubmitting(false);
 
     toast({
-      title: "Item Added Successfully",
-      description: `Asset Tag ${generatedAssetTag} created for ${values.name}.`,
+      title: "Equipo Añadido Correctamente",
+      description: `Etiqueta de Activo ${generatedAssetTag} creada para ${values.name}.`,
       variant: "default", // Use 'default' which maps to green in our theme
     });
 
@@ -89,19 +89,21 @@ export default function AddInventoryItemPage() {
     <div className="flex justify-center items-start min-h-screen p-4 md:p-8">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-primary">Add New Inventory Item</CardTitle>
+          <CardTitle className="text-2xl text-primary flex items-center gap-2">
+            <PackagePlus className="w-6 h-6"/> Añadir Nuevo Equipo al Inventario
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="add-item-form"> {/* Added ID */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Item Name</FormLabel>
+                    <FormLabel>Nombre del Equipo</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Laptop Pro 15, Wireless Mouse X" {...field} />
+                      <Input placeholder="e.g., Laptop Pro 15, Ratón Inalámbrico X" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -113,24 +115,27 @@ export default function AddInventoryItemPage() {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Item Type</FormLabel>
+                    <FormLabel>Tipo de Equipo</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select item type" />
+                            <SelectValue placeholder="Selecciona un tipo de equipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Laptop">Laptop</SelectItem>
-                          <SelectItem value="Desktop">Desktop</SelectItem>
+                          <SelectItem value="Portátil">Portátil</SelectItem>
+                          <SelectItem value="Sobremesa">Sobremesa</SelectItem>
                           <SelectItem value="Monitor">Monitor</SelectItem>
-                          <SelectItem value="Mobile Phone">Mobile Phone</SelectItem>
+                          <SelectItem value="Móvil">Móvil</SelectItem>
                           <SelectItem value="Tablet">Tablet</SelectItem>
-                          <SelectItem value="Keyboard">Keyboard</SelectItem>
-                          <SelectItem value="Mouse">Mouse</SelectItem>
+                          <SelectItem value="Teclado">Teclado</SelectItem>
+                          <SelectItem value="Ratón">Ratón</SelectItem>
                           <SelectItem value="Docking Station">Docking Station</SelectItem>
-                          <SelectItem value="Printer">Printer</SelectItem>
-                           <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Impresora">Impresora</SelectItem>
+                          <SelectItem value="Servidor">Servidor</SelectItem>
+                          <SelectItem value="Redes">Redes</SelectItem>
+                          <SelectItem value="Almacenamiento">Almacenamiento</SelectItem>
+                          <SelectItem value="Otro">Otro</SelectItem>
                         </SelectContent>
                       </Select>
                     <FormMessage />
@@ -143,12 +148,12 @@ export default function AddInventoryItemPage() {
                 name="barcode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Barcode / Identifier</FormLabel>
+                    <FormLabel>Código de Barras / Identificador</FormLabel>
                     <FormControl>
-                      <Input placeholder="Scan or enter barcode" {...field} />
+                      <Input placeholder="Escanea o introduce el código de barras" {...field} />
                     </FormControl>
                      <FormDescription>
-                      This will be used for scanning. An Asset Tag will be generated upon saving.
+                      Se usará para escanear. Se generará una Etiqueta de Activo al guardar.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -160,9 +165,9 @@ export default function AddInventoryItemPage() {
                 name="serialNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Serial Number (Optional)</FormLabel>
+                    <FormLabel>Número de Serie (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter serial number" {...field} />
+                      <Input placeholder="Introduce el número de serie" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,18 +179,18 @@ export default function AddInventoryItemPage() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Initial Status</FormLabel>
+                    <FormLabel>Estado Inicial</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select initial status" />
+                            <SelectValue placeholder="Selecciona estado inicial" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="In Stock">In Stock</SelectItem>
-                          <SelectItem value="Assigned">Assigned</SelectItem>
-                           <SelectItem value="Maintenance">Maintenance</SelectItem>
-                           <SelectItem value="Disposed">Disposed</SelectItem>
+                          <SelectItem value="En Stock">En Stock</SelectItem>
+                          <SelectItem value="Asignado">Asignado</SelectItem>
+                           <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
+                           <SelectItem value="Retirado">Retirado</SelectItem>
                         </SelectContent>
                       </Select>
                     <FormMessage />
@@ -199,7 +204,7 @@ export default function AddInventoryItemPage() {
                 name="purchaseDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Purchase Date (Optional)</FormLabel>
+                    <FormLabel>Fecha de Compra (Opcional)</FormLabel>
                     <FormControl>
                        {/* Basic input for now, replace with Calendar later if needed */}
                       <Input type="date" {...field} />
@@ -213,7 +218,7 @@ export default function AddInventoryItemPage() {
                 name="warrantyEndDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Warranty End Date (Optional)</FormLabel>
+                    <FormLabel>Fin de Garantía (Opcional)</FormLabel>
                     <FormControl>
                        {/* Basic input for now, replace with Calendar later if needed */}
                       <Input type="date" {...field} />
@@ -229,10 +234,10 @@ export default function AddInventoryItemPage() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes (Optional)</FormLabel>
+                    <FormLabel>Notas (Opcional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Any additional details about the item..."
+                        placeholder="Cualquier detalle adicional sobre el equipo..."
                         className="resize-none"
                         {...field}
                       />
@@ -261,16 +266,17 @@ export default function AddInventoryItemPage() {
         </CardContent>
          <CardFooter className="flex justify-end">
             <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting} className="mr-2">
-                Cancel
+                Cancelar
             </Button>
-            <Button type="submit" form="add-item-form" disabled={isSubmitting} onClick={form.handleSubmit(onSubmit)}>
+            {/* Trigger submit via onClick */}
+            <Button type="button" form="add-item-form" disabled={isSubmitting} onClick={form.handleSubmit(onSubmit)}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  Guardando...
                 </>
               ) : (
-                'Save Item & Generate Tag'
+                'Guardar Equipo y Generar Etiqueta'
               )}
             </Button>
         </CardFooter>
@@ -278,3 +284,5 @@ export default function AddInventoryItemPage() {
     </div>
   );
 }
+
+```

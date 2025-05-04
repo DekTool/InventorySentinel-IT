@@ -45,11 +45,11 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/')}
-                tooltip="Dashboard"
+                tooltip="Panel Principal"
               >
                 <a>
                   <LayoutDashboard />
-                  <span>Dashboard</span>
+                  <span>Panel Principal</span>
                 </a>
               </SidebarMenuButton>
             </Link>
@@ -59,11 +59,11 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/inventory')}
-                tooltip="Inventory"
+                tooltip="Inventario"
               >
                 <a>
                   <Package />
-                  <span>Inventory</span>
+                  <span>Inventario</span>
                 </a>
               </SidebarMenuButton>
             </Link>
@@ -73,11 +73,11 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/scan')}
-                tooltip="Scan Barcode"
+                tooltip="Escanear Código"
               >
                 <a>
                   <ScanBarcode />
-                  <span>Scan Barcode</span>
+                  <span>Escanear Código</span>
                 </a>
               </SidebarMenuButton>
             </Link>
@@ -87,11 +87,11 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/users')}
-                tooltip="Users"
+                tooltip="Usuarios"
               >
                 <a>
                   <Users />
-                  <span>Users</span>
+                  <span>Usuarios</span>
                 </a>
               </SidebarMenuButton>
             </Link>
@@ -105,18 +105,18 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/settings')}
-                tooltip="Settings"
+                tooltip="Configuración"
               >
                 <a>
                   <Settings />
-                  <span>Settings</span>
+                  <span>Configuración</span>
                 </a>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
            {/* Only show trigger on expanded mobile view or desktop */}
           <SidebarMenuItem className="md:hidden">
-              <SidebarTrigger className="ml-auto" />
+              <SidebarTrigger tooltip="Alternar barra lateral" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

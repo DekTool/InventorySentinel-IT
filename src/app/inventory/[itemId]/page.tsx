@@ -6,8 +6,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, User, Calendar, Tag, Barcode, Info, Printer, Loader2 } from "lucide-react";
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation'; // Import useParams
+import { notFound, useParams, useRouter } from 'next/navigation'; // Import useParams & useRouter
 import { useState, useEffect } from 'react'; // Import useState and useEffect
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 // Mock data fetching function (replace with actual data fetching)
 async function getItemDetails(itemId: string) {
@@ -16,11 +17,11 @@ async function getItemDetails(itemId: string) {
   await new Promise(resolve => setTimeout(resolve, 50));
 
   const items = [
-    { id: 'ASSET-001', name: 'Laptop Pro 15"', type: 'Laptop', status: 'Assigned', assignedTo: 'Alice Smith (asmith@example.com)', barcode: '123456789012', serialNumber: 'SN123XYZ', purchaseDate: '2023-01-15', warrantyEndDate: '2026-01-14', notes: 'Minor scratch on the lid.' },
-    { id: 'ASSET-002', name: 'Wireless Mouse X', type: 'Mouse', status: 'In Stock', assignedTo: null, barcode: '987654321098', serialNumber: 'SN456ABC', purchaseDate: '2023-05-20', warrantyEndDate: '2024-05-19', notes: '' },
-    { id: 'ASSET-003', name: 'Docking Station Z', type: 'Docking Station', status: 'Assigned', assignedTo: 'Bob Johnson (bjohnson@example.com)', barcode: '112233445566', serialNumber: 'SNDEF789', purchaseDate: '2022-11-01', warrantyEndDate: '2024-10-31', notes: 'Requires specific power adapter.' },
-    { id: 'ASSET-004', name: 'Mobile Phone S23', type: 'Mobile Phone', status: 'In Stock', assignedTo: null, barcode: '778899001122', serialNumber: 'SNMOB001', purchaseDate: '2024-02-10', warrantyEndDate: '2026-02-09', notes: 'Unlocked version.' },
-    { id: 'ASSET-005', name: 'Monitor 27" 4K', type: 'Monitor', status: 'Assigned', assignedTo: 'Alice Smith (asmith@example.com)', barcode: '334455667788', serialNumber: 'SNMON4K01', purchaseDate: '2023-08-05', warrantyEndDate: '2026-08-04', notes: 'Includes HDMI cable.' },
+    { id: 'ASSET-001', name: 'Laptop Pro 15"', type: 'Portátil', status: 'Asignado', assignedTo: 'Alice Smith (asmith@example.com)', barcode: '123456789012', serialNumber: 'SN123XYZ', purchaseDate: '2023-01-15', warrantyEndDate: '2026-01-14', notes: 'Pequeño arañazo en la tapa.' },
+    { id: 'ASSET-002', name: 'Ratón Inalámbrico X', type: 'Ratón', status: 'En Stock', assignedTo: null, barcode: '987654321098', serialNumber: 'SN456ABC', purchaseDate: '2023-05-20', warrantyEndDate: '2024-05-19', notes: '' },
+    { id: 'ASSET-003', name: 'Docking Station Z', type: 'Docking Station', status: 'Asignado', assignedTo: 'Bob Johnson (bjohnson@example.com)', barcode: '112233445566', serialNumber: 'SNDEF789', purchaseDate: '2022-11-01', warrantyEndDate: '2024-10-31', notes: 'Requiere adaptador de corriente específico.' },
+    { id: 'ASSET-004', name: 'Teléfono Móvil S23', type: 'Móvil', status: 'En Stock', assignedTo: null, barcode: '778899001122', serialNumber: 'SNMOB001', purchaseDate: '2024-02-10', warrantyEndDate: '2026-02-09', notes: 'Versión desbloqueada.' },
+    { id: 'ASSET-005', name: 'Monitor 27" 4K', type: 'Monitor', status: 'Asignado', assignedTo: 'Alice Smith (asmith@example.com)', barcode: '334455667788', serialNumber: 'SNMON4K01', purchaseDate: '2023-08-05', warrantyEndDate: '2026-08-04', notes: 'Incluye cable HDMI.' },
   ];
 
   const item = items.find(i => i.id === itemId);
@@ -43,6 +44,8 @@ type Item = {
 
 export default function InventoryItemDetailsPage() {
   const params = useParams();
+  const router = useRouter(); // Add router
+  const { toast } = useToast(); // Add toast
   const itemId = params?.itemId as string;
   const [item, setItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,27 +59,42 @@ export default function InventoryItemDetailsPage() {
       if (data) {
         setItem(data);
       } else {
-        // Handle item not found - this component renders after layout, so notFound() might not work as expected here.
-        // Redirecting or showing an error message might be better.
         console.error("Item not found:", itemId);
-        // Optional: Redirect back or show a message
-        // router.push('/inventory');
+        // Redirect or show error if item not found
+        toast({ title: "Error", description: "Equipo no encontrado.", variant: "destructive"});
+        router.push('/inventory');
       }
       setIsLoading(false);
     };
 
     fetchData();
-  }, [itemId]);
+  }, [itemId, router, toast]); // Add router and toast to dependency array
 
 
   const handlePrintTag = () => {
     if (!item) return;
     // In a real app, this would trigger a print dialog
     // potentially generating a specific layout for the asset tag.
-    alert(`Printing Asset Tag for ${item.id}...\nBarcode: ${item.barcode}\nName: ${item.name}`);
+    alert(`Imprimiendo Etiqueta de Activo para ${item.id}...\nCódigo Barras: ${item.barcode}\nNombre: ${item.name}`);
     // Consider using a dedicated print library or CSS for better control
     // window.print(); // Basic browser print - needs specific styling via @media print
   }
+
+  const handleDeleteItem = () => {
+    if (!item) return;
+    // Placeholder for delete confirmation and action
+    if (confirm(`¿Estás seguro de que quieres eliminar el equipo "${item.name}" (ID: ${item.id})? Esta acción no se puede deshacer.`)) {
+        console.log("Deleting item:", item.id);
+        // Simulate API call for deletion
+        toast({
+            title: "Equipo Eliminado (Simulado)",
+            description: `${item.name} ha sido eliminado del inventario.`,
+            variant: "destructive"
+        });
+        router.push('/inventory'); // Redirect after deletion
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -86,21 +104,22 @@ export default function InventoryItemDetailsPage() {
     );
   }
 
+  // The item not found case is handled in useEffect by redirecting
+
   if (!item) {
-    // Use notFound() here if routing allows, or display an error message.
-    // For client components, direct rendering might be better than notFound()
+     // This state should ideally not be reached due to the redirect in useEffect,
+     // but keep it as a fallback safeguard.
      return (
        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-destructive">
-         <h2 className="text-xl font-semibold mb-4">Item Not Found</h2>
-         <p>The requested inventory item could not be found.</p>
+         <h2 className="text-xl font-semibold mb-4">Equipo no encontrado</h2>
+         <p>El equipo de inventario solicitado no se pudo cargar.</p>
          <Link href="/inventory" passHref className="mt-4">
              <Button variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Inventory
+                <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inventario
              </Button>
         </Link>
        </div>
      );
-    // Or alternatively: notFound(); // If Next.js handles this correctly in Client Components now
   }
 
 
@@ -109,14 +128,14 @@ export default function InventoryItemDetailsPage() {
        <div className="mb-6">
          <Link href="/inventory" passHref>
              <Button variant="outline" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Inventory
+                <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inventario
              </Button>
         </Link>
        </div>
 
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <div className="flex justify-between items-start gap-4">
+          <div className="flex justify-between items-start gap-4 flex-wrap">
              <div>
                 <CardTitle className="text-2xl text-primary flex items-center gap-2">
                     <Tag className="w-6 h-6"/> {item.id}
@@ -125,81 +144,85 @@ export default function InventoryItemDetailsPage() {
              </div>
              <div className="flex gap-2">
                  {/* onClick is now allowed because this is a Client Component */}
-                 <Button variant="outline" size="icon" onClick={handlePrintTag}>
+                 <Button variant="outline" size="icon" onClick={handlePrintTag} title="Imprimir Etiqueta">
                     <Printer className="h-4 w-4" />
-                    <span className="sr-only">Print Asset Tag</span>
+                    <span className="sr-only">Imprimir Etiqueta</span>
                  </Button>
                  <Link href={`/inventory/${item.id}/edit`} passHref>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" title="Editar Equipo">
                         <Edit className="h-4 w-4" />
-                         <span className="sr-only">Edit Item</span>
+                         <span className="sr-only">Editar Equipo</span>
                     </Button>
                  </Link>
-                 {/* Add Delete confirmation later */}
-                 <Button variant="destructive" size="icon" disabled> {/* Disable delete for now */}
+                 {/* Enable Delete button */}
+                 <Button variant="destructive" size="icon" onClick={handleDeleteItem} title="Eliminar Equipo">
                     <Trash2 className="h-4 w-4" />
-                     <span className="sr-only">Delete Item</span>
+                     <span className="sr-only">Eliminar Equipo</span>
                  </Button>
              </div>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3">
-                 <h3 className="font-semibold text-lg">Details</h3>
+        <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+                 <h3 className="font-semibold text-lg">Detalles</h3>
                  <Separator />
-                 <div className="grid grid-cols-3 gap-2 text-sm">
-                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Barcode className="w-4 h-4"/> Barcode:</span>
+                 <div className="grid grid-cols-3 gap-3 text-sm">
+                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Barcode className="w-4 h-4"/> Código Barras:</span>
                     <span className="col-span-2">{item.barcode}</span>
 
-                    <span className="font-medium text-muted-foreground">Serial No:</span>
+                    <span className="font-medium text-muted-foreground">N/S:</span>
                     <span className="col-span-2">{item.serialNumber || 'N/A'}</span>
 
-                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Calendar className="w-4 h-4"/> Purchase Date:</span>
+                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Calendar className="w-4 h-4"/> Fecha Compra:</span>
                     <span className="col-span-2">{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'}</span>
 
-                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Calendar className="w-4 h-4"/> Warranty End:</span>
+                    <span className="font-medium text-muted-foreground flex items-center gap-1"><Calendar className="w-4 h-4"/> Fin Garantía:</span>
                     <span className="col-span-2">{item.warrantyEndDate ? new Date(item.warrantyEndDate).toLocaleDateString() : 'N/A'}</span>
                  </div>
             </div>
-             <div className="space-y-3">
-                 <h3 className="font-semibold text-lg">Assignment & Status</h3>
+             <div className="space-y-4">
+                 <h3 className="font-semibold text-lg">Asignación y Estado</h3>
                  <Separator />
-                 <div className="grid grid-cols-3 gap-2 text-sm">
-                     <span className="font-medium text-muted-foreground">Status:</span>
+                 <div className="grid grid-cols-3 gap-3 text-sm">
+                     <span className="font-medium text-muted-foreground">Estado:</span>
                      <span className="col-span-2">
-                         <span className={`px-2 py-0.5 rounded-full text-xs ${item.status === 'Assigned' ? 'bg-yellow-900 text-yellow-300' : item.status === 'In Stock' ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-300'}`}>
+                         <span className={`px-2 py-0.5 rounded-full text-xs ${
+                            item.status === 'Asignado' ? 'bg-yellow-900 text-yellow-300' :
+                            item.status === 'En Stock' ? 'bg-green-900 text-green-300' :
+                            'bg-gray-700 text-gray-300' // Default/Other statuses
+                         }`}>
                            {item.status}
                         </span>
                     </span>
 
-                    <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-4 h-4"/> Assigned To:</span>
-                    <span className="col-span-2">{item.assignedTo || 'Not Assigned'}</span>
+                    <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-4 h-4"/> Asignado A:</span>
+                    <span className="col-span-2">{item.assignedTo || 'Sin Asignar'}</span>
 
                     {/* Add Assignment Date, Location if needed */}
                  </div>
-                  <h3 className="font-semibold text-lg mt-4">Notes</h3>
+                  <h3 className="font-semibold text-lg mt-4">Notas</h3>
                   <Separator />
                    <p className="text-sm text-muted-foreground italic">
-                     {item.notes || 'No notes provided.'}
+                     {item.notes || 'No hay notas.'}
                   </p>
             </div>
 
         </CardContent>
          <CardFooter>
              {/* Add action buttons if needed, e.g., Assign, Check In/Out */}
-             {item.status === 'In Stock' && <Button variant="accent" disabled>Assign Item</Button>} {/* Disable for now */}
-             {item.status === 'Assigned' && <Button variant="secondary" disabled>Check In Item</Button>} {/* Disable for now */}
+             {item.status === 'En Stock' && <Button variant="accent" disabled>Asignar Equipo</Button>} {/* Disable for now */}
+             {item.status === 'Asignado' && <Button variant="secondary" disabled>Registrar Devolución</Button>} {/* Disable for now */}
          </CardFooter>
       </Card>
 
        {/* Placeholder for History Section */}
       <Card className="w-full max-w-4xl mx-auto mt-6">
         <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2"><Info className="w-5 h-5"/> Item History</CardTitle>
-            <CardDescription>Log of assignments, status changes, and maintenance.</CardDescription>
+            <CardTitle className="text-xl flex items-center gap-2"><Info className="w-5 h-5"/> Historial del Equipo</CardTitle>
+            <CardDescription>Registro de asignaciones, cambios de estado y mantenimiento.</CardDescription>
         </CardHeader>
          <CardContent>
-            <p className="text-sm text-muted-foreground">History tracking coming soon...</p>
+            <p className="text-sm text-muted-foreground">Seguimiento del historial próximamente...</p>
             {/* Display history log here */}
          </CardContent>
       </Card>
@@ -207,4 +230,6 @@ export default function InventoryItemDetailsPage() {
   );
 }
 
-    
+
+
+```
