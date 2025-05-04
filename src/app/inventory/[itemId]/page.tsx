@@ -229,7 +229,3 @@ export default function InventoryItemDetailsPage() {
     </div>
   );
 }
-
-
-
-```

@@ -1,4 +1,6 @@
 
+"use client"; // Move "use client" to the top
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -22,9 +24,6 @@ const getInitials = (name: string) => {
   if (names.length > 1) return (names[0][0] + names[names.length - 1][0]).toUpperCase();
   return '';
 }
-
-// Make the component a client component to use hooks
-"use client";
 
 export default function UsersPage() {
   const { toast } = useToast(); // Initialize toast
@@ -119,3 +118,4 @@ export default function UsersPage() {
     </div>
   );
 }
+
