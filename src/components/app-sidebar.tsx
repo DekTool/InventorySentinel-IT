@@ -1,0 +1,125 @@
+
+"use client";
+
+import type React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Package, Users, Settings, LayoutDashboard, ScanBarcode } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarTrigger,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button'; // Import Button
+
+export function AppSidebar() {
+  const pathname = usePathname();
+  const { state } = useSidebar(); // Get sidebar state
+
+  const isActive = (path: string) => {
+    // Handle exact match for dashboard, prefix match otherwise
+    if (path === '/') return pathname === path;
+    return pathname.startsWith(path);
+  };
+
+  return (
+    <>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 p-2">
+           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary">
+            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3A5.25 5.25 0 0 0 12 1.5Zm-3.75 5.25a3.75 3.75 0 0 0 7.5 0v3h-7.5v-3Zm-3.75 3V18a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5v-8.25a.75.75 0 0 0-.75-.75h-12a.75.75 0 0 0-.75.75Zm1.5 1.5a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.023 3.023a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm-.023 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
+          </svg>
+          {state === 'expanded' && <span className="font-semibold text-lg">Inventory Sentinel</span>}
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="flex-1 overflow-y-auto">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href="/" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/')}
+                tooltip="Dashboard"
+              >
+                <a>
+                  <LayoutDashboard />
+                  <span>Dashboard</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/inventory" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/inventory')}
+                tooltip="Inventory"
+              >
+                <a>
+                  <Package />
+                  <span>Inventory</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <Link href="/scan" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/scan')}
+                tooltip="Scan Barcode"
+              >
+                <a>
+                  <ScanBarcode />
+                  <span>Scan Barcode</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/users" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/users')}
+                tooltip="Users"
+              >
+                <a>
+                  <Users />
+                  <span>Users</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href="/settings" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/settings')}
+                tooltip="Settings"
+              >
+                <a>
+                  <Settings />
+                  <span>Settings</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+           {/* Only show trigger on expanded mobile view or desktop */}
+          <SidebarMenuItem className="md:hidden">
+              <SidebarTrigger className="ml-auto" />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </>
+  );
+}
