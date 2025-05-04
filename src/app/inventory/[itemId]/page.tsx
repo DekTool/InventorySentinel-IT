@@ -1,10 +1,13 @@
 
+"use client"; // Add "use client" directive
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Trash2, User, Calendar, Tag, Barcode, Info, Printer } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, User, Calendar, Tag, Barcode, Info, Printer, Loader2 } from "lucide-react";
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation'; // Import useParams
+import { useState, useEffect } from 'react'; // Import useState and useEffect
 
 // Mock data fetching function (replace with actual data fetching)
 async function getItemDetails(itemId: string) {
@@ -24,20 +27,82 @@ async function getItemDetails(itemId: string) {
   return item;
 }
 
+// Define Item type
+type Item = {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  assignedTo: string | null;
+  barcode: string;
+  serialNumber: string | null;
+  purchaseDate: string | null;
+  warrantyEndDate: string | null;
+  notes: string | null;
+};
 
-export default async function InventoryItemDetailsPage({ params }: { params: { itemId: string } }) {
-  const item = await getItemDetails(params.itemId);
+export default function InventoryItemDetailsPage() {
+  const params = useParams();
+  const itemId = params?.itemId as string;
+  const [item, setItem] = useState<Item | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!item) {
-    notFound();
-  }
+  useEffect(() => {
+    if (!itemId) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      const data = await getItemDetails(itemId);
+      if (data) {
+        setItem(data);
+      } else {
+        // Handle item not found - this component renders after layout, so notFound() might not work as expected here.
+        // Redirecting or showing an error message might be better.
+        console.error("Item not found:", itemId);
+        // Optional: Redirect back or show a message
+        // router.push('/inventory');
+      }
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [itemId]);
+
 
   const handlePrintTag = () => {
+    if (!item) return;
     // In a real app, this would trigger a print dialog
     // potentially generating a specific layout for the asset tag.
     alert(`Printing Asset Tag for ${item.id}...\nBarcode: ${item.barcode}\nName: ${item.name}`);
-    // window.print(); // Basic browser print - needs specific styling
+    // Consider using a dedicated print library or CSS for better control
+    // window.print(); // Basic browser print - needs specific styling via @media print
   }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!item) {
+    // Use notFound() here if routing allows, or display an error message.
+    // For client components, direct rendering might be better than notFound()
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-destructive">
+         <h2 className="text-xl font-semibold mb-4">Item Not Found</h2>
+         <p>The requested inventory item could not be found.</p>
+         <Link href="/inventory" passHref className="mt-4">
+             <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Inventory
+             </Button>
+        </Link>
+       </div>
+     );
+    // Or alternatively: notFound(); // If Next.js handles this correctly in Client Components now
+  }
+
 
   return (
     <div className="flex flex-col h-full p-4 md:p-8">
@@ -59,6 +124,7 @@ export default async function InventoryItemDetailsPage({ params }: { params: { i
                 <CardDescription>{item.name} - {item.type}</CardDescription>
              </div>
              <div className="flex gap-2">
+                 {/* onClick is now allowed because this is a Client Component */}
                  <Button variant="outline" size="icon" onClick={handlePrintTag}>
                     <Printer className="h-4 w-4" />
                     <span className="sr-only">Print Asset Tag</span>
@@ -70,7 +136,7 @@ export default async function InventoryItemDetailsPage({ params }: { params: { i
                     </Button>
                  </Link>
                  {/* Add Delete confirmation later */}
-                 <Button variant="destructive" size="icon">
+                 <Button variant="destructive" size="icon" disabled> {/* Disable delete for now */}
                     <Trash2 className="h-4 w-4" />
                      <span className="sr-only">Delete Item</span>
                  </Button>
@@ -101,7 +167,7 @@ export default async function InventoryItemDetailsPage({ params }: { params: { i
                  <div className="grid grid-cols-3 gap-2 text-sm">
                      <span className="font-medium text-muted-foreground">Status:</span>
                      <span className="col-span-2">
-                         <span className={`px-2 py-0.5 rounded-full text-xs ${item.status === 'Assigned' ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'}`}>
+                         <span className={`px-2 py-0.5 rounded-full text-xs ${item.status === 'Assigned' ? 'bg-yellow-900 text-yellow-300' : item.status === 'In Stock' ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-300'}`}>
                            {item.status}
                         </span>
                     </span>
@@ -121,8 +187,8 @@ export default async function InventoryItemDetailsPage({ params }: { params: { i
         </CardContent>
          <CardFooter>
              {/* Add action buttons if needed, e.g., Assign, Check In/Out */}
-             {item.status === 'In Stock' && <Button variant="accent">Assign Item</Button>}
-             {item.status === 'Assigned' && <Button variant="secondary">Check In Item</Button>}
+             {item.status === 'In Stock' && <Button variant="accent" disabled>Assign Item</Button>} {/* Disable for now */}
+             {item.status === 'Assigned' && <Button variant="secondary" disabled>Check In Item</Button>} {/* Disable for now */}
          </CardFooter>
       </Card>
 
@@ -140,3 +206,5 @@ export default async function InventoryItemDetailsPage({ params }: { params: { i
     </div>
   );
 }
+
+    
