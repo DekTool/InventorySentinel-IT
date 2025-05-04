@@ -1,6 +1,7 @@
 
 "use client"; // Make this a client component to use hooks/event handlers
 
+import * as React from "react"; // Import React for useCallback
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Mail, Building, Package, Download, AlertTriangle, Loader2, UserX, Phone } from "lucide-react"; // Added Phone, UserX, Loader2
 import Link from 'next/link';
 import { notFound, useParams, useRouter } from 'next/navigation'; // Import useRouter
-import { useState, useEffect } from "react"; // Import useState, useEffect
+import { useState, useEffect, useCallback } from "react"; // Import useState, useEffect, useCallback
 import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 
@@ -110,16 +111,16 @@ export default function UserDetailsPage() {
   }, [userId, router, toast]);
 
 
-  const handleGenerateReturnForm = () => {
+  const handleGenerateReturnForm = useCallback(() => {
       if (!user) return;
       // In a real app, this would:
       // 1. Collect item conditions (maybe open a modal).
       // 2. Generate a PDF or document.
       // 3. Potentially trigger an email to HR.
       alert(`Generando formulario de devolución para ${user.name}...\nNormalmente incluiría una lista de ${assignedItems.length} equipos y campos para evaluar su condición antes de enviarlo a RRHH.`);
-  }
+  }, [user, assignedItems]); // Added dependencies
 
-   const handleDeleteUser = () => {
+   const handleDeleteUser = useCallback(() => {
     if (!user) return;
     // Placeholder for delete confirmation and action
     if (confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.name}" (ID: ${user.id})? Si tiene equipos asignados, deberás gestionarlos primero. Esta acción no se puede deshacer.`)) {
@@ -132,7 +133,7 @@ export default function UserDetailsPage() {
         });
         router.push('/users'); // Redirect after deletion
     }
-  };
+  }, [user, router, toast]); // Added dependencies
 
 
   if (isLoading) {
@@ -283,5 +284,3 @@ export default function UserDetailsPage() {
     </div>
   );
 }
-
-```
