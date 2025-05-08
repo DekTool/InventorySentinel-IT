@@ -1,9 +1,10 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Package, Users, ScanBarcode, AlertCircle, KeyRound } from "lucide-react";
+import { Package, Users, ScanBarcode, AlertCircle, KeyRound, ShoppingCart } from "lucide-react";
 import { getAllInventoryItems } from "@/lib/inventory-data";
 import { getAllLicenses } from "@/lib/license-data";
 import { getAllUsers } from "@/lib/user-data"; 
+import { getAllOrders } from "@/lib/order-data"; // Import for orders
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default async function Home() {
@@ -11,33 +12,45 @@ export default async function Home() {
   const inventoryItems = await getAllInventoryItems();
   const licenses = await getAllLicenses();
   const users = await getAllUsers();
+  const orders = await getAllOrders(); // Fetch orders
 
   // Calculate counts
   const totalInventoryCount = inventoryItems.length;
+  const totalLicensesCount = licenses.length;
   const activeLicensesCount = licenses.filter(license => license.status === 'Activa').length;
+  const totalUsersCount = users.length;
   
-  const assignedUserIds = new Set(inventoryItems.filter(item => item.assignedToId).map(item => item.assignedToId));
+  // Calculate users with assigned equipment
+  const assignedUserIds = new Set();
+  inventoryItems.forEach(item => {
+    if (item.assignedToId) {
+      assignedUserIds.add(item.assignedToId);
+    }
+  });
   const assignedUsersCount = assignedUserIds.size;
+
+  const totalOrdersCount = orders.length; // Count total orders
 
   // Calculate expiring licenses (within next 30 days)
   const today = new Date();
-  const expiringLicensesCount = licenses.filter(license => {
+  const expiringLicenses = licenses.filter(license => {
     if (!license.expirationDate) return false;
     try {
-      const expiration = parseISO(license.expirationDate); // Use parseISO for robust date parsing
+      const expiration = parseISO(license.expirationDate);
       const daysUntilExpiration = differenceInDays(expiration, today);
       return daysUntilExpiration >= 0 && daysUntilExpiration <= 30;
     } catch (e) {
-      // Invalid date format, treat as not expiring soon
       console.warn(`Invalid expiration date format for license ${license.id}: ${license.expirationDate}`);
       return false;
     }
-  }).length;
+  });
+  const expiringLicensesCount = expiringLicenses.length;
   
-  // Calculate low stock items (example: items with status 'En Stock' - customize as needed)
-  // This is a placeholder; a real low stock calculation would need quantity and threshold per item type.
-  const lowStockItems = inventoryItems.filter(item => item.status === 'En Stock'); 
-  const lowStockItemsCount = lowStockItems.length < 5 ? lowStockItems.length : 0; // Example: alert if less than 5 items in stock overall
+  // Example low stock: items with status 'En Stock' less than a threshold.
+  // This is a simplified placeholder. Real low stock would require quantity tracking per item type.
+  const lowStockItemsCount = inventoryItems.filter(item => item.status === 'En Stock').length < 5 && inventoryItems.length > 0 ? 
+                             inventoryItems.filter(item => item.status === 'En Stock').length 
+                             : 0;
 
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8">
@@ -55,80 +68,90 @@ export default async function Home() {
           <CardContent>
             <div className="text-2xl font-bold">{totalInventoryCount}</div>
             <p className="text-xs text-muted-foreground">
-              equipos actualmente rastreados
+              {totalInventoryCount === 1 ? "equipo actualmente rastreado" : "equipos actualmente rastreados"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Licencias Activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Licencias Totales</CardTitle>
             <KeyRound className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeLicensesCount}</div>
+            <div className="text-2xl font-bold">{totalLicensesCount}</div>
             <p className="text-xs text-muted-foreground">
-              licencias de software activas gestionadas
+              ({activeLicensesCount} activas) gestionadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios con Equipo Asignado</CardTitle>
+            <CardTitle className="text-sm font-medium">Usuarios Registrados</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assignedUsersCount}</div>
+            <div className="text-2xl font-bold">{totalUsersCount}</div>
             <p className="text-xs text-muted-foreground">
-              usuarios con equipo actualmente asignado
+              ({assignedUsersCount} con equipo asignado)
             </p>
           </CardContent>
         </Card>
 
          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Actividad Reciente</CardTitle>
-             <ScanBarcode className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
+             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12 Escaneos Hoy</div> {/* Static for now */}
+            <div className="text-2xl font-bold">{totalOrdersCount}</div>
              <p className="text-xs text-muted-foreground">
-              Registros de entrada y salida
+              pedidos registrados en el sistema
             </p>
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 lg:col-span-1 xl:col-span-4"> {/* Adjusted span for larger screens */}
+        <Card className="md:col-span-2 lg:col-span-3 xl:grid-cols-4"> {/* Adjusted span for larger screens */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-destructive">Alertas Importantes</CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            {lowStockItemsCount > 0 && (
-                <div className="text-lg font-bold">{lowStockItemsCount} Tipo(s) de Equipo(s) con Stock Bajo</div>
+            {lowStockItemsCount > 0 ? (
+                <div className="text-lg font-bold">{lowStockItemsCount} Artículo(s) en Inventario con Stock Bajo</div>
+            ) : (
+                 totalInventoryCount > 0 && <div className="text-lg font-medium">Inventario: Sin alertas de stock bajo.</div>
             )}
             <p className="text-xs text-muted-foreground mb-2">
               {lowStockItemsCount > 0 ? 
-                `Revisa los niveles de inventario para los ${lowStockItemsCount} tipo(s) de equipo(s) con pocas unidades.` : 
-                "No hay alertas de stock bajo actualmente."}
+                `Revisa los niveles de inventario para los ${lowStockItemsCount} artículo(s) con pocas unidades.` : 
+                totalInventoryCount > 0 ? "Los niveles de stock de inventario parecen estar bien." : "No hay artículos en el inventario para monitorizar stock."}
             </p>
             
-            {expiringLicensesCount > 0 && (
-                <div className="text-lg font-bold">{expiringLicensesCount} Licencia(s) por Expirar</div>
+            {expiringLicensesCount > 0 ? (
+                <div className="text-lg font-bold">{expiringLicensesCount} Licencia(s) por Expirar (próximos 30 días)</div>
+            ) : (
+                 totalLicensesCount > 0 && <div className="text-lg font-medium">Licencias: Sin caducidades próximas.</div>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-2">
               {expiringLicensesCount > 0 ? 
                 `Renueva ${expiringLicensesCount === 1 ? 'la licencia que caduca' : 'las licencias que caducan'} pronto.` :
-                "No hay licencias que caduquen en los próximos 30 días."
+                totalLicensesCount > 0 ? "No hay licencias que caduquen en los próximos 30 días." : "No hay licencias registradas."
               }
             </p>
-             {/* You can add more alerts based on real data */}
-             {users.length === 0 && (
-                 <div className="text-lg font-bold mt-2">No hay Usuarios Registrados</div>
+            
+             {totalUsersCount === 0 && (
+                 <div className="text-lg font-bold mt-2">Usuarios: No hay Usuarios Registrados</div>
              )}
              <p className="text-xs text-muted-foreground">
-                {users.length === 0 ? "Añade usuarios al sistema para empezar a asignar equipos." : ""}
+                {totalUsersCount === 0 ? "Añade usuarios al sistema para empezar a asignar equipos y licencias." : ""}
+             </p>
+              {totalOrdersCount === 0 && (
+                <div className="text-lg font-bold mt-2">Pedidos: No hay Pedidos Registrados</div>
+             )}
+             <p className="text-xs text-muted-foreground">
+                {totalOrdersCount === 0 ? "Registra nuevos pedidos para hacer seguimiento de las compras de material." : ""}
              </p>
 
           </CardContent>
