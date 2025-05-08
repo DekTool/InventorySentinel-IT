@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Mail, Building, Package, Download, AlertTriangle, Loader2, UserX, Phone } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Building, Package, Download, AlertTriangle, Loader2, UserX, Phone, Printer } from "lucide-react";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from "react";
@@ -25,14 +25,6 @@ const getInitials = (name: string) => {
   return (names[0][0] + names[names.length - 1][0]).toUpperCase();
 }
 
-type AssignedItemDisplay = { // Simplified for display
-  id: string;
-  name: string;
-  type: string;
-  assignmentDate: string | null; // In this mock, assignmentDate is not directly on InventoryItem
-};
-
-
 export default function UserDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,7 +32,7 @@ export default function UserDetailsPage() {
   const userId = params?.userId as string;
 
   const [user, setUser] = useState<User | null>(null);
-  const [assignedItems, setAssignedItems] = useState<AssignedItemDisplay[]>([]);
+  const [assignedItems, setAssignedItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -52,15 +44,7 @@ export default function UserDetailsPage() {
       if (userData) {
         setUser(userData);
         const itemsData = await getInventoryItemsByUserId(userId);
-        // Map InventoryItem to AssignedItemDisplay
-        setAssignedItems(itemsData.map(item => ({
-            id: item.id,
-            name: item.name,
-            type: item.type,
-            // Mocking assignment date as purchase date for display, or could be null
-            // In a real system, an assignment would have its own date.
-            assignmentDate: item.purchaseDate 
-        })));
+        setAssignedItems(itemsData);
       } else {
         toast({ title: "Error", description: "Usuario no encontrado.", variant: "destructive" });
         router.push('/users');
@@ -81,8 +65,14 @@ export default function UserDetailsPage() {
 
   const handleGenerateReturnForm = useCallback(() => {
       if (!user) return;
-      alert(`Generando formulario de devolución para ${user.name}...\nNormalmente incluiría una lista de ${assignedItems.length} equipos y campos para evaluar su condición antes de enviarlo a RRHH.`);
-  }, [user, assignedItems]);
+      // Open a new tab with the printable form
+      window.open(`/users/${user.id}/print-return-form`, '_blank');
+      toast({
+        title: "Preparando Formulario",
+        description: "Se está abriendo el formulario de devolución/entrega en una nueva pestaña.",
+        variant: "default"
+      });
+  }, [user]);
 
    const handleDeleteUser = useCallback(async () => {
     if (!user) return;
@@ -91,6 +81,7 @@ export default function UserDetailsPage() {
             title: "Acción Requerida",
             description: `El usuario ${user.name} tiene ${assignedItems.length} equipo(s) asignado(s). Debes reasignarlos o retirarlos antes de eliminar al usuario.`,
             variant: "destructive",
+            duration: 5000,
         });
         return;
     }
@@ -150,11 +141,10 @@ export default function UserDetailsPage() {
              </Button>
         </Link>
         <div className="flex gap-2">
-            {assignedItems.length > 0 && (
-                <Button variant="secondary" onClick={handleGenerateReturnForm} disabled={isDeleting}>
-                    <Download className="mr-2 h-4 w-4" /> Generar Form. Devolución
-                </Button>
-            )}
+            {/* The button text now reflects it's a general form, not just for returns */}
+            <Button variant="secondary" onClick={handleGenerateReturnForm} disabled={isDeleting}>
+                <Printer className="mr-2 h-4 w-4" /> Generar Form. Devolución/Entrega
+            </Button>
              <Button variant="destructive" onClick={handleDeleteUser} disabled={isDeleting}>
                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
                   Eliminar Usuario
@@ -214,7 +204,7 @@ export default function UserDetailsPage() {
                                     <TableHead>Etiqueta Activo</TableHead>
                                     <TableHead>Nombre Equipo</TableHead>
                                     <TableHead>Tipo</TableHead>
-                                    <TableHead>Fecha Asignación (Mock)</TableHead>
+                                    <TableHead>Fecha Asignación (Entrada Equipo)</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -227,7 +217,7 @@ export default function UserDetailsPage() {
                                         </TableCell>
                                         <TableCell>{item.name}</TableCell>
                                         <TableCell>{item.type}</TableCell>
-                                        <TableCell>{item.assignmentDate ? new Date(item.assignmentDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                        <TableCell>{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -259,3 +249,5 @@ export default function UserDetailsPage() {
     </div>
   );
 }
+
+    
