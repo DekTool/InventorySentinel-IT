@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Package, Users, ScanBarcode, AlertCircle, KeyRound } from "lucide-react";
 import { getAllInventoryItems } from "@/lib/inventory-data";
 import { getAllLicenses } from "@/lib/license-data";
-import { getAllUsers } from "@/lib/user-data"; // Assuming this function exists or will be created
+import { getAllUsers } from "@/lib/user-data"; 
 
 export default async function Home() {
   // Fetch data
@@ -15,16 +15,16 @@ export default async function Home() {
   const totalInventoryCount = inventoryItems.length;
   const activeLicensesCount = licenses.filter(license => license.status === 'Activa').length;
   
-  // "Usuarios Asignados" will count users who have more than 0 items assigned to them,
-  // based on the `assignedItems` property in the User object from mock data.
-  // A more robust way for real data would be to check actual assignments.
-  const assignedUsersCount = users.filter(user => user.assignedItems > 0).length;
+  // "Usuarios Asignados" will count users who have more than 0 items assigned to them.
+  // This is derived by checking inventory items for unique assignedToId values.
+  const assignedUserIds = new Set(inventoryItems.filter(item => item.assignedToId).map(item => item.assignedToId));
+  const assignedUsersCount = assignedUserIds.size;
 
 
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Bienvenido a Inventory Sentinel</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">DASHBOARD SOLARIA ENERGÍA Y MEDIO AMBIENTE</h1>
         <p className="text-muted-foreground">Tu Panel de Control de Gestión de Inventario IT</p>
       </header>
 
@@ -57,7 +57,7 @@ export default async function Home() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios Asignados</CardTitle>
+            <CardTitle className="text-sm font-medium">Usuarios con Equipo Asignado</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
