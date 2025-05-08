@@ -177,7 +177,7 @@ export default function UserDetailsPage() {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 mb-4">
-              <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
+               <UserIcon className="h-10 w-10 text-muted-foreground" />
             </Avatar>
             <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
              <CardDescription>{user.id}</CardDescription>
@@ -202,9 +202,11 @@ export default function UserDetailsPage() {
              </div>
           </CardContent>
            <CardFooter>
-               <Button variant="outline" className="w-full" disabled>
-                 <Edit className="mr-2 h-4 w-4" /> Editar Usuario (No Implementado)
-               </Button>
+              <Link href={`/users/${userId}/edit`} passHref className="w-full">
+                <Button variant="outline" className="w-full" disabled={isDeleting}>
+                  <Edit className="mr-2 h-4 w-4" /> Editar Usuario
+                </Button>
+              </Link>
            </CardFooter>
         </Card>
 
