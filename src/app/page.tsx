@@ -24,22 +24,25 @@ export default async function Home() {
   const expiringLicensesCount = licenses.filter(license => {
     if (!license.expirationDate) return false;
     try {
-      const expiration = parseISO(license.expirationDate);
+      const expiration = parseISO(license.expirationDate); // Use parseISO for robust date parsing
       const daysUntilExpiration = differenceInDays(expiration, today);
       return daysUntilExpiration >= 0 && daysUntilExpiration <= 30;
     } catch (e) {
       // Invalid date format, treat as not expiring soon
+      console.warn(`Invalid expiration date format for license ${license.id}: ${license.expirationDate}`);
       return false;
     }
   }).length;
-
-  // NOTE: "Equipos con Stock Bajo" is static as the current data model doesn't support quantity/thresholds.
-  const lowStockItemsCount = 3; // Placeholder static value
+  
+  // Calculate low stock items (example: items with status 'En Stock' - customize as needed)
+  // This is a placeholder; a real low stock calculation would need quantity and threshold per item type.
+  const lowStockItems = inventoryItems.filter(item => item.status === 'En Stock'); 
+  const lowStockItemsCount = lowStockItems.length < 5 ? lowStockItems.length : 0; // Example: alert if less than 5 items in stock overall
 
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">DASHBOARD SOLARIA ENERGÍA Y MEDIO AMBIENTE</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">DASHBOARD</h1>
         <p className="text-muted-foreground">Tu Panel de Control de Gestión de Inventario IT</p>
       </header>
 
@@ -102,17 +105,32 @@ export default async function Home() {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">{lowStockItemsCount} Equipo(s) con Stock Bajo</div>
+            {lowStockItemsCount > 0 && (
+                <div className="text-lg font-bold">{lowStockItemsCount} Tipo(s) de Equipo(s) con Stock Bajo</div>
+            )}
             <p className="text-xs text-muted-foreground mb-2">
-              (Valor de demostración) Revisa los niveles de inventario para Laptops Modelo X.
+              {lowStockItemsCount > 0 ? 
+                `Revisa los niveles de inventario para los ${lowStockItemsCount} tipo(s) de equipo(s) con pocas unidades.` : 
+                "No hay alertas de stock bajo actualmente."}
             </p>
-            <div className="text-lg font-bold">{expiringLicensesCount} Licencia(s) por Expirar</div>
+            
+            {expiringLicensesCount > 0 && (
+                <div className="text-lg font-bold">{expiringLicensesCount} Licencia(s) por Expirar</div>
+            )}
             <p className="text-xs text-muted-foreground">
               {expiringLicensesCount > 0 ? 
                 `Renueva ${expiringLicensesCount === 1 ? 'la licencia que caduca' : 'las licencias que caducan'} pronto.` :
                 "No hay licencias que caduquen en los próximos 30 días."
               }
             </p>
+             {/* You can add more alerts based on real data */}
+             {users.length === 0 && (
+                 <div className="text-lg font-bold mt-2">No hay Usuarios Registrados</div>
+             )}
+             <p className="text-xs text-muted-foreground">
+                {users.length === 0 ? "Añade usuarios al sistema para empezar a asignar equipos." : ""}
+             </p>
+
           </CardContent>
         </Card>
 
