@@ -134,8 +134,8 @@ export default function AddInventoryItemPage() {
                           <SelectItem value="Impresora">Impresora</SelectItem>
                           <SelectItem value="Servidor">Servidor</SelectItem>
                           <SelectItem value="Redes">Redes</SelectItem>
-                          <SelectItem value="Almacenamiento">Almacenamiento</SelectItem>
-                          <SelectItem value="Otro">Otro</SelectItem>
+                           <SelectItem value="Almacenamiento">Almacenamiento</SelectItem>
+                           <SelectItem value="Otro">Otro</SelectItem>
                         </SelectContent>
                       </Select>
                     <FormMessage />
@@ -284,5 +284,3 @@ export default function AddInventoryItemPage() {
     </div>
   );
 }
-
-```
