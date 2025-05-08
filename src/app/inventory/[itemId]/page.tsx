@@ -41,7 +41,66 @@ export default function InventoryItemDetailsPage() {
 
   const handlePrintTag = () => {
     if (!item) return;
-    alert(`Imprimiendo Etiqueta de Activo para ${item.id}...\nCódigo Barras: ${item.barcode}\nNombre: ${item.name}`);
+
+    const printWindow = window.open('', '_blank', 'height=400,width=600');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Etiqueta de Activo: ${item.id}</title>
+            <style>
+              body { font-family: Arial, sans-serif; text-align: center; margin: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;}
+              .tag-container { display: inline-block; border: 2px solid black; padding: 20px; width: 300px; }
+              .asset-id { font-size: 24px; font-weight: bold; margin-bottom: 10px; word-wrap: break-word; }
+              .barcode-text { font-size: 18px; margin-bottom: 5px; word-wrap: break-word; }
+              .barcode-placeholder { 
+                height: 50px; 
+                border: 1px dashed #ccc; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                font-style: italic; 
+                color: #777;
+                margin-top: 10px;
+              }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="tag-container">
+              <div class="asset-id">${item.id}</div>
+              <div class="barcode-text">${item.barcode}</div>
+              <!-- En una aplicación real, aquí se podría generar una imagen de código de barras -->
+              <div class="barcode-placeholder">(Espacio para Código de Barras)</div>
+              <p class="no-print" style="margin-top: 20px; font-size: 12px;">Cierre esta ventana después de imprimir.</p>
+            </div>
+            <script>
+              window.onload = function() {
+                window.print();
+                // No cierres automáticamente la ventana para que el usuario pueda confirmar.
+                // Se puede añadir un botón de cerrar en la página si se desea.
+                // window.onafterprint = function() { window.close(); };
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      toast({
+        title: "Etiqueta Generada",
+        description: "Se ha abierto una nueva ventana para imprimir la etiqueta.",
+        variant: "default"
+      });
+    } else {
+      toast({
+        title: "Error de Ventana Emergente",
+        description: "No se pudo abrir la ventana de impresión. Revisa la configuración de tu navegador.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteItem = async () => {
@@ -111,9 +170,9 @@ export default function InventoryItemDetailsPage() {
                 <CardDescription>{item.name} - {item.type}</CardDescription>
              </div>
              <div className="flex gap-2">
-                 <Button variant="outline" size="icon" onClick={handlePrintTag} title="Imprimir Etiqueta" disabled={isDeleting}>
+                 <Button variant="outline" size="icon" onClick={handlePrintTag} title="Imprimir Etiqueta de Activo" disabled={isDeleting}>
                     <Printer className="h-4 w-4" />
-                    <span className="sr-only">Imprimir Etiqueta</span>
+                    <span className="sr-only">Imprimir Etiqueta de Activo</span>
                  </Button>
                  <Link href={`/inventory/${item.id}/edit`} passHref>
                     <Button variant="outline" size="icon" title="Editar Equipo" disabled={isDeleting}>
