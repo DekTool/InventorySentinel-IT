@@ -4,6 +4,7 @@ import { Package, Users, ScanBarcode, AlertCircle, KeyRound } from "lucide-react
 import { getAllInventoryItems } from "@/lib/inventory-data";
 import { getAllLicenses } from "@/lib/license-data";
 import { getAllUsers } from "@/lib/user-data"; 
+import { differenceInDays, parseISO } from 'date-fns';
 
 export default async function Home() {
   // Fetch data
@@ -15,11 +16,25 @@ export default async function Home() {
   const totalInventoryCount = inventoryItems.length;
   const activeLicensesCount = licenses.filter(license => license.status === 'Activa').length;
   
-  // "Usuarios Asignados" will count users who have more than 0 items assigned to them.
-  // This is derived by checking inventory items for unique assignedToId values.
   const assignedUserIds = new Set(inventoryItems.filter(item => item.assignedToId).map(item => item.assignedToId));
   const assignedUsersCount = assignedUserIds.size;
 
+  // Calculate expiring licenses (within next 30 days)
+  const today = new Date();
+  const expiringLicensesCount = licenses.filter(license => {
+    if (!license.expirationDate) return false;
+    try {
+      const expiration = parseISO(license.expirationDate);
+      const daysUntilExpiration = differenceInDays(expiration, today);
+      return daysUntilExpiration >= 0 && daysUntilExpiration <= 30;
+    } catch (e) {
+      // Invalid date format, treat as not expiring soon
+      return false;
+    }
+  }).length;
+
+  // NOTE: "Equipos con Stock Bajo" is static as the current data model doesn't support quantity/thresholds.
+  const lowStockItemsCount = 3; // Placeholder static value
 
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8">
@@ -87,13 +102,16 @@ export default async function Home() {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">3 Equipos con Stock Bajo</div> {/* Static for now */}
+            <div className="text-lg font-bold">{lowStockItemsCount} Equipo(s) con Stock Bajo</div>
             <p className="text-xs text-muted-foreground mb-2">
-              Revisa los niveles de inventario para Laptops Modelo X.
+              (Valor de demostración) Revisa los niveles de inventario para Laptops Modelo X.
             </p>
-            <div className="text-lg font-bold">5 Licencias por Expirar</div> {/* Static for now */}
+            <div className="text-lg font-bold">{expiringLicensesCount} Licencia(s) por Expirar</div>
             <p className="text-xs text-muted-foreground">
-              Renueva licencias de "Software de Diseño Avanzado" antes de fin de mes.
+              {expiringLicensesCount > 0 ? 
+                `Renueva ${expiringLicensesCount === 1 ? 'la licencia que caduca' : 'las licencias que caducan'} pronto.` :
+                "No hay licencias que caduquen en los próximos 30 días."
+              }
             </p>
           </CardContent>
         </Card>
