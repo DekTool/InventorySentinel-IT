@@ -4,8 +4,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Search, Package, Upload, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlusCircle, Search, Package, Upload, Loader2, User as UserIcon } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState, useMemo } from "react";
@@ -20,8 +20,9 @@ const getInitials = (name: string) => {
   return '';
 }
 
+// Make the component a client component to use hooks
 export default function UsersPage() {
-  const { toast } = useToast();
+  const { toast } = useToast(); // Initialize toast
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,7 +111,6 @@ export default function UsersPage() {
                   <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={`https://i.pravatar.cc/40?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
                           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{user.name}</span>

@@ -4,10 +4,10 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer, User as UserIcon } from "lucide-react";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from "react";
@@ -177,7 +177,6 @@ export default function UserDetailsPage() {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 mb-4">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
               <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
