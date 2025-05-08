@@ -27,9 +27,11 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, Trash2, PlusCircle } from 'lucide-react';
+import Link from 'next/link'; // Added import for Link
 import type { OrderStatus, OrderItem, Order } from '@/types/order';
 import { getOrderById, updateOrder } from '@/lib/order-data';
 import { InventoryItemType } from '@/types/inventory';
+import { Separator } from '@/components/ui/separator';
 
 const orderStatuses: OrderStatus[] = ["Solicitado", "Comprado", "En Tránsito", "Recibido", "Cancelado"];
 const itemCategories: InventoryItemType[] = ["Portátil", "Sobremesa", "Monitor", "Móvil", "Tablet", "Teclado", "Ratón", "Docking Station", "Impresora", "Servidor", "Redes", "Almacenamiento", "Otro"];
