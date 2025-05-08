@@ -187,7 +187,7 @@ export default function EditInventoryItemPage() {
                  </Button>
                </Link>
           </div>
-           <FormDescription>Etiqueta de Activo: {itemId}</FormDescription>
+           <p className="text-sm text-muted-foreground">Etiqueta de Activo: {itemId}</p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
