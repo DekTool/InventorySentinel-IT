@@ -1,10 +1,9 @@
-
 "use client";
 
 import type React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, Users, Settings, LayoutDashboard, ScanBarcode } from 'lucide-react';
+import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound } from 'lucide-react'; // Added KeyRound
 import { cn } from '@/lib/utils';
 import {
   SidebarContent,
@@ -68,6 +67,20 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/licencias" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/licencias')}
+                tooltip="Licencias"
+              >
+                <a>
+                  <KeyRound />
+                  <span>Licencias</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
            <SidebarMenuItem>
             <Link href="/scan" passHref legacyBehavior>
               <SidebarMenuButton
@@ -122,4 +135,3 @@ export function AppSidebar() {
       </SidebarFooter>
     </>
   );
-}

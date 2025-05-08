@@ -1,4 +1,3 @@
-
 "use client"; // Make this a client component to use hooks/event handlers
 
 import * as React from "react"; // Import React for useCallback
@@ -187,7 +186,7 @@ export default function UserDetailsPage() {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 mb-4">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
+              <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
               <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>

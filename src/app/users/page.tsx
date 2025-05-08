@@ -1,4 +1,3 @@
-
 "use client"; // Move "use client" to the top
 
 import { Button } from "@/components/ui/button";
@@ -33,9 +32,11 @@ export default function UsersPage() {
     toast({
         title: "Función no implementada",
         description: "La carga masiva de usuarios estará disponible pronto.",
-        variant: "default"
+        variant: "default" // Using "default" which is often styled as success/info
     });
     // In a real app, this might open a modal or navigate to an upload page
+    // For example, trigger a file input click:
+    // document.getElementById('bulk-user-upload-input')?.click();
   };
 
 
@@ -54,6 +55,9 @@ export default function UsersPage() {
             </Button>
         </div>
       </header>
+      {/* Hidden file input for bulk upload, if needed for a more elaborate implementation later
+      <input type="file" id="bulk-user-upload-input" className="hidden" accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+      */}
 
       <div className="mb-4 flex items-center gap-2">
         <Input
@@ -84,7 +88,7 @@ export default function UsersPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                          {/* Placeholder image, replace with actual user images if available */}
-                        <AvatarImage src={`https://i.pravatar.cc/40?u=${user.email}`} alt={user.name} />
+                        <AvatarImage src={`https://i.pravatar.cc/40?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
                         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{user.name}</span>
@@ -117,5 +121,3 @@ export default function UsersPage() {
       </div>
     </div>
   );
-}
-
