@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -206,7 +207,7 @@ export default function AddLicensePage() {
                 name="purchaseDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fecha de Compra (Opcional)</FormLabel>
+                    <FormLabel>FECHA DE ENTRADA</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} value={field.value || ''} />
                     </FormControl>

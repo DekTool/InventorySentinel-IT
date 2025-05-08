@@ -204,7 +204,7 @@ export default function AddInventoryItemPage() {
                 name="purchaseDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fecha de Compra (Opcional)</FormLabel>
+                    <FormLabel>FECHA DE ENTRADA</FormLabel>
                     <FormControl>
                        {/* Basic input for now, replace with Calendar later if needed */}
                       <Input type="date" {...field} />

@@ -297,7 +297,7 @@ export default function EditInventoryItemPage() {
                 name="purchaseDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fecha de Compra (Opcional)</FormLabel>
+                    <FormLabel>FECHA DE ENTRADA</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -362,4 +362,3 @@ export default function EditInventoryItemPage() {
     </div>
   );
 }
-
