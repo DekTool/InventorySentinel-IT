@@ -1,23 +1,43 @@
 
+"use client"; // Keep as client component for search/filter interactivity later
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, Loader2 } from "lucide-react";
 import Link from 'next/link';
+import { useEffect, useState, useMemo } from "react";
+import type { InventoryItem } from "@/types/inventory";
+import { getAllInventoryItems } from "@/lib/inventory-data";
 
-// Mock data for demonstration
-const inventoryItems = [
-  { id: 'ASSET-001', name: 'Laptop Pro 15"', type: 'Portátil', status: 'Asignado', assignedTo: 'Alice Smith', barcode: '123456789012' },
-  { id: 'ASSET-002', name: 'Ratón Inalámbrico X', type: 'Ratón', status: 'En Stock', assignedTo: null, barcode: '987654321098' },
-  { id: 'ASSET-003', name: 'Docking Station Z', type: 'Docking Station', status: 'Asignado', assignedTo: 'Bob Johnson', barcode: '112233445566' },
-  { id: 'ASSET-004', name: 'Teléfono Móvil S23', type: 'Móvil', status: 'En Stock', assignedTo: null, barcode: '778899001122' },
-  { id: 'ASSET-005', name: 'Monitor 27" 4K', type: 'Monitor', status: 'Asignado', assignedTo: 'Alice Smith', barcode: '334455667788' },
-];
+export default function InventoryPage() {
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-// Make component async to potentially fetch data later
-export default async function InventoryPage() {
- // TODO: Fetch real data here later
- // const items = await fetchInventoryItems();
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const items = await getAllInventoryItems();
+      setInventoryItems(items);
+      setIsLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return inventoryItems;
+    }
+    return inventoryItems.filter(item =>
+      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.assignedTo && item.assignedTo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      item.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [inventoryItems, searchTerm]);
+
 
  return (
     <div className="flex flex-col h-full p-4 md:p-8">
@@ -34,60 +54,71 @@ export default async function InventoryPage() {
         <Input
           placeholder="Buscar por Etiqueta, Nombre, Código de Barras..."
           className="max-w-sm"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-         <Button variant="outline" size="icon">
+         <Button variant="outline" size="icon" onClick={() => setSearchTerm('')} disabled={!searchTerm}>
             <Search className="h-4 w-4" />
             <span className="sr-only">Buscar</span>
          </Button>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Etiqueta Activo</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Asignado A</TableHead>
-              <TableHead>Código Barras</TableHead>
-              <TableHead><span className="sr-only">Acciones</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {inventoryItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>
-                   <span className={`px-2 py-1 rounded-full text-xs ${
-                     item.status === 'Asignado' ? 'bg-yellow-900 text-yellow-300' :
-                     item.status === 'En Stock' ? 'bg-green-900 text-green-300' :
-                     'bg-gray-700 text-gray-300' // Default/Other statuses
-                   }`}>
-                    {item.status}
-                  </span>
-                </TableCell>
-                <TableCell>{item.assignedTo || 'N/A'}</TableCell>
-                <TableCell>{item.barcode}</TableCell>
-                <TableCell>
-                   <Link href={`/inventory/${item.id}`} passHref>
-                     <Button variant="ghost" size="sm">Ver</Button>
-                   </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-             {inventoryItems.length === 0 && (
+      {isLoading ? (
+        <div className="flex justify-center items-center flex-1">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Cargando inventario...</span>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  No se encontraron elementos en el inventario.
-                </TableCell>
+                <TableHead>Etiqueta Activo</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Asignado A</TableHead>
+                <TableHead>Código Barras</TableHead>
+                <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.type}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      item.status === 'Asignado' ? 'bg-yellow-900 text-yellow-300' :
+                      item.status === 'En Stock' ? 'bg-green-900 text-green-300' :
+                      item.status === 'Mantenimiento' ? 'bg-blue-900 text-blue-300' :
+                      item.status === 'Retirado' ? 'bg-red-900 text-red-300' :
+                      'bg-gray-700 text-gray-300'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>{item.assignedTo || 'N/A'}</TableCell>
+                  <TableCell>{item.barcode}</TableCell>
+                  <TableCell>
+                    <Link href={`/inventory/${item.id}`} passHref>
+                      <Button variant="ghost" size="sm">Ver</Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredItems.length === 0 && !isLoading && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    No se encontraron elementos en el inventario que coincidan con la búsqueda o no hay equipos registrados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

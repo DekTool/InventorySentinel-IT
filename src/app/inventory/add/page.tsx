@@ -27,19 +27,31 @@ import {
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { Loader2, PackagePlus } from 'lucide-react'; // Changed icon
+import { Loader2, PackagePlus } from 'lucide-react';
+import { addInventoryItem } from '@/lib/inventory-data';
+import type { InventoryItemStatus, InventoryItemType } from '@/types/inventory';
+
+const itemStatuses: InventoryItemStatus[] = ["En Stock", "Asignado", "Mantenimiento", "Retirado"];
+const itemTypes: InventoryItemType[] = ["Portátil", "Sobremesa", "Monitor", "Móvil", "Tablet", "Teclado", "Ratón", "Docking Station", "Impresora", "Servidor", "Redes", "Almacenamiento", "Otro"];
+
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  type: z.string().min(1, { message: "Por favor, selecciona un tipo de equipo." }),
-  serialNumber: z.string().optional(),
+  type: z.enum(itemTypes, {
+    errorMap: () => ({ message: "Por favor, selecciona un tipo de equipo válido."})
+  }),
+  serialNumber: z.string().optional().nullable(),
   barcode: z.string().min(5, { message: "El código de barras debe tener al menos 5 caracteres."}).max(50),
-  purchaseDate: z.string().optional(), // Consider using a date picker component later
-  warrantyEndDate: z.string().optional(), // Consider using a date picker component later
-  notes: z.string().optional(),
-  status: z.enum(["En Stock", "Asignado", "Mantenimiento", "Retirado"]), // Adjusted status options in Spanish
+  purchaseDate: z.string().optional().nullable(),
+  warrantyEndDate: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  status: z.enum(itemStatuses, {
+    errorMap: () => ({ message: "Por favor, selecciona un estado válido."})
+  }),
+  assignedTo: z.string().optional().nullable(), // This would be the display string, e.g. "User Name (email)"
+  assignedToId: z.string().optional().nullable(), // This would be the actual User ID
 });
 
 export default function AddInventoryItemPage() {
@@ -51,13 +63,15 @@ export default function AddInventoryItemPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: "",
+      type: "Portátil",
       serialNumber: "",
-      barcode: "", // Maybe generate this later?
+      barcode: "", 
       purchaseDate: "",
       warrantyEndDate: "",
       notes: "",
-      status: "En Stock", // Default status in Spanish
+      status: "En Stock",
+      assignedTo: "",
+      assignedToId: "",
     },
   });
 
@@ -65,24 +79,24 @@ export default function AddInventoryItemPage() {
     setIsSubmitting(true);
     console.log("Form Submitted:", values);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Simulate asset tag generation (replace with actual logic)
-    const generatedAssetTag = `ACTIVO-${Math.floor(1000 + Math.random() * 9000)}`;
-    console.log("Generated Asset Tag:", generatedAssetTag);
-
-    setIsSubmitting(false);
-
-    toast({
-      title: "Equipo Añadido Correctamente",
-      description: `Etiqueta de Activo ${generatedAssetTag} creada para ${values.name}.`,
-      variant: "default", // Use 'default' which maps to green in our theme
-    });
-
-    // Redirect to inventory page or the new item's detail page
-    router.push('/inventory');
-    // router.push(`/inventory/${generatedAssetTag}`); // Option to redirect to detail page
+    try {
+      const newItem = await addInventoryItem(values);
+      toast({
+        title: "Equipo Añadido Correctamente",
+        description: `Etiqueta de Activo ${newItem.id} creada para ${newItem.name}.`,
+        variant: "default", 
+      });
+      router.push('/inventory');
+    } catch (error) {
+      console.error("Error adding inventory item:", error);
+      toast({
+        title: "Error al Añadir Equipo",
+        description: "Hubo un problema al guardar el equipo. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -95,7 +109,7 @@ export default function AddInventoryItemPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="add-item-form"> {/* Added ID */}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="add-item-form">
               <FormField
                 control={form.control}
                 name="name"
@@ -123,19 +137,9 @@ export default function AddInventoryItemPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Portátil">Portátil</SelectItem>
-                          <SelectItem value="Sobremesa">Sobremesa</SelectItem>
-                          <SelectItem value="Monitor">Monitor</SelectItem>
-                          <SelectItem value="Móvil">Móvil</SelectItem>
-                          <SelectItem value="Tablet">Tablet</SelectItem>
-                          <SelectItem value="Teclado">Teclado</SelectItem>
-                          <SelectItem value="Ratón">Ratón</SelectItem>
-                          <SelectItem value="Docking Station">Docking Station</SelectItem>
-                          <SelectItem value="Impresora">Impresora</SelectItem>
-                          <SelectItem value="Servidor">Servidor</SelectItem>
-                          <SelectItem value="Redes">Redes</SelectItem>
-                           <SelectItem value="Almacenamiento">Almacenamiento</SelectItem>
-                           <SelectItem value="Otro">Otro</SelectItem>
+                          {itemTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     <FormMessage />
@@ -167,7 +171,7 @@ export default function AddInventoryItemPage() {
                   <FormItem>
                     <FormLabel>Número de Serie (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Introduce el número de serie" {...field} />
+                      <Input placeholder="Introduce el número de serie" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -187,10 +191,9 @@ export default function AddInventoryItemPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="En Stock">En Stock</SelectItem>
-                          <SelectItem value="Asignado">Asignado</SelectItem>
-                           <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
-                           <SelectItem value="Retirado">Retirado</SelectItem>
+                          {itemStatuses.map(status =>(
+                             <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     <FormMessage />
@@ -198,7 +201,6 @@ export default function AddInventoryItemPage() {
                 )}
               />
 
-              {/* Add optional fields like Purchase Date, Warranty End Date */}
                <FormField
                 control={form.control}
                 name="purchaseDate"
@@ -206,8 +208,7 @@ export default function AddInventoryItemPage() {
                   <FormItem>
                     <FormLabel>FECHA DE ENTRADA</FormLabel>
                     <FormControl>
-                       {/* Basic input for now, replace with Calendar later if needed */}
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -220,14 +221,12 @@ export default function AddInventoryItemPage() {
                   <FormItem>
                     <FormLabel>Fin de Garantía (Opcional)</FormLabel>
                     <FormControl>
-                       {/* Basic input for now, replace with Calendar later if needed */}
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} value={field.value ?? ""}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
 
               <FormField
                 control={form.control}
@@ -240,27 +239,13 @@ export default function AddInventoryItemPage() {
                         placeholder="Cualquier detalle adicional sobre el equipo..."
                         className="resize-none"
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {/* Placeholder for file upload if needed later
-              <FormItem>
-                <FormLabel>Upload Document/Image (Optional)</FormLabel>
-                <FormControl>
-                  <Button variant="outline" type="button" className="w-full justify-start">
-                     <Upload className="mr-2 h-4 w-4" /> Upload File
-                  </Button>
-                </FormControl>
-                 <FormDescription>
-                    Upload receipts, assignment forms, etc.
-                 </FormDescription>
-              </FormItem>
-              */}
-
             </form>
           </Form>
         </CardContent>
@@ -268,8 +253,7 @@ export default function AddInventoryItemPage() {
             <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting} className="mr-2">
                 Cancelar
             </Button>
-            {/* Trigger submit via onClick */}
-            <Button type="button" form="add-item-form" disabled={isSubmitting} onClick={form.handleSubmit(onSubmit)}>
+            <Button type="submit" form="add-item-form" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

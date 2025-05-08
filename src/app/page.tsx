@@ -1,8 +1,26 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Package, Users, ScanBarcode, AlertCircle, KeyRound } from "lucide-react"; // Added KeyRound
+import { Package, Users, ScanBarcode, AlertCircle, KeyRound } from "lucide-react";
+import { getAllInventoryItems } from "@/lib/inventory-data";
+import { getAllLicenses } from "@/lib/license-data";
+import { getAllUsers } from "@/lib/user-data"; // Assuming this function exists or will be created
 
-export default function Home() {
+export default async function Home() {
+  // Fetch data
+  const inventoryItems = await getAllInventoryItems();
+  const licenses = await getAllLicenses();
+  const users = await getAllUsers();
+
+  // Calculate counts
+  const totalInventoryCount = inventoryItems.length;
+  const activeLicensesCount = licenses.filter(license => license.status === 'Activa').length;
+  
+  // "Usuarios Asignados" will count users who have more than 0 items assigned to them,
+  // based on the `assignedItems` property in the User object from mock data.
+  // A more robust way for real data would be to check actual assignments.
+  const assignedUsersCount = users.filter(user => user.assignedItems > 0).length;
+
+
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8">
       <header className="mb-8">
@@ -17,7 +35,7 @@ export default function Home() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
+            <div className="text-2xl font-bold">{totalInventoryCount}</div>
             <p className="text-xs text-muted-foreground">
               equipos actualmente rastreados
             </p>
@@ -30,9 +48,9 @@ export default function Home() {
             <KeyRound className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">256</div>
+            <div className="text-2xl font-bold">{activeLicensesCount}</div>
             <p className="text-xs text-muted-foreground">
-              licencias de software gestionadas
+              licencias de software activas gestionadas
             </p>
           </CardContent>
         </Card>
@@ -43,9 +61,9 @@ export default function Home() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">56</div>
+            <div className="text-2xl font-bold">{assignedUsersCount}</div>
             <p className="text-xs text-muted-foreground">
-              usuarios con equipo asignado
+              usuarios con equipo actualmente asignado
             </p>
           </CardContent>
         </Card>
@@ -56,7 +74,7 @@ export default function Home() {
              <ScanBarcode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12 Escaneos Hoy</div>
+            <div className="text-2xl font-bold">12 Escaneos Hoy</div> {/* Static for now */}
              <p className="text-xs text-muted-foreground">
               Registros de entrada y salida
             </p>
@@ -69,11 +87,11 @@ export default function Home() {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">3 Equipos con Stock Bajo</div>
+            <div className="text-lg font-bold">3 Equipos con Stock Bajo</div> {/* Static for now */}
             <p className="text-xs text-muted-foreground mb-2">
               Revisa los niveles de inventario para Laptops Modelo X.
             </p>
-            <div className="text-lg font-bold">5 Licencias por Expirar</div>
+            <div className="text-lg font-bold">5 Licencias por Expirar</div> {/* Static for now */}
             <p className="text-xs text-muted-foreground">
               Renueva licencias de "Software de Diseño Avanzado" antes de fin de mes.
             </p>
@@ -82,7 +100,6 @@ export default function Home() {
 
       </main>
 
-      {/* Add more dashboard components as needed */}
        <footer className="mt-auto pt-8 text-center text-xs text-muted-foreground">
          Panel de Control v1.0
        </footer>

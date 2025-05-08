@@ -1,23 +1,19 @@
-"use client"; // Move "use client" to the top
+
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlusCircle, Search, Package, Upload } from "lucide-react";
+import { PlusCircle, Search, Package, Upload, Loader2 } from "lucide-react";
 import Link from 'next/link';
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-
-// Mock data for demonstration
-const users = [
-  { id: 'USR-001', name: 'Alice Smith', email: 'asmith@example.com', department: 'Engineering', assignedItems: 2 },
-  { id: 'USR-002', name: 'Bob Johnson', email: 'bjohnson@example.com', department: 'Marketing', assignedItems: 1 },
-  { id: 'USR-003', name: 'Charlie Brown', email: 'cbrown@example.com', department: 'Sales', assignedItems: 0 },
-  { id: 'USR-004', name: 'Diana Prince', email: 'dprince@example.com', department: 'HR', assignedItems: 1 },
-  { id: 'USR-005', name: 'Ethan Hunt', email: 'ehunt@example.com', department: 'IT', assignedItems: 5 },
-];
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState, useMemo } from "react";
+import type { User } from "@/types/user";
+import { getAllUsers } from "@/lib/user-data";
 
 const getInitials = (name: string) => {
+  if (!name) return '';
   const names = name.split(' ');
   if (names.length === 1) return names[0]?.[0]?.toUpperCase() ?? '';
   if (names.length > 1) return (names[0][0] + names[names.length - 1][0]).toUpperCase();
@@ -25,20 +21,40 @@ const getInitials = (name: string) => {
 }
 
 export default function UsersPage() {
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const usersData = await getAllUsers();
+      setUsers(usersData);
+      setIsLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return users;
+    }
+    return users.filter(user =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
   const handleBulkUploadClick = () => {
-    // Placeholder function for bulk upload
     toast({
         title: "Función no implementada",
         description: "La carga masiva de usuarios estará disponible pronto.",
-        variant: "default" // Using "default" which is often styled as success/info
+        variant: "default"
     });
-    // In a real app, this might open a modal or navigate to an upload page
-    // For example, trigger a file input click:
-    // document.getElementById('bulk-user-upload-input')?.click();
   };
-
 
   return (
     <div className="flex flex-col h-full p-4 md:p-8">
@@ -55,69 +71,77 @@ export default function UsersPage() {
             </Button>
         </div>
       </header>
-      {/* Hidden file input for bulk upload, if needed for a more elaborate implementation later
-      <input type="file" id="bulk-user-upload-input" className="hidden" accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-      */}
 
       <div className="mb-4 flex items-center gap-2">
         <Input
-          placeholder="Buscar por Nombre, Email, Departamento..."
+          placeholder="Buscar por Nombre, Email, Departamento, ID..."
           className="max-w-sm"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-         <Button variant="outline" size="icon">
+         <Button variant="outline" size="icon" onClick={() => setSearchTerm('')} disabled={!searchTerm}>
             <Search className="h-4 w-4" />
              <span className="sr-only">Buscar</span>
          </Button>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Departamento</TableHead>
-              <TableHead>Equipos Asignados</TableHead>
-              <TableHead><span className="sr-only">Acciones</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                 <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                         {/* Placeholder image, replace with actual user images if available */}
-                        <AvatarImage src={`https://i.pravatar.cc/40?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{user.name}</span>
-                    </div>
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.department}</TableCell>
-                 <TableCell>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                        <Package className="w-4 h-4"/>
-                        {user.assignedItems}
-                    </div>
-                </TableCell>
-                <TableCell>
-                   <Link href={`/users/${user.id}`} passHref>
-                     <Button variant="ghost" size="sm">Ver Detalles</Button>
-                   </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-             {users.length === 0 && (
+      {isLoading ? (
+        <div className="flex justify-center items-center flex-1">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Cargando usuarios...</span>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  No se encontraron usuarios.
-                </TableCell>
+                <TableHead>ID</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Departamento</TableHead>
+                <TableHead>Equipos Asignados</TableHead>
+                <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.id}</TableCell>
+                  <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={`https://i.pravatar.cc/40?u=${user.email}`} alt={user.name} data-ai-hint="people avatar"/>
+                          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{user.name}</span>
+                      </div>
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.department}</TableCell>
+                  <TableCell>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                          <Package className="w-4 h-4"/>
+                          {user.assignedItems}
+                      </div>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/users/${user.id}`} passHref>
+                      <Button variant="ghost" size="sm">Ver Detalles</Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredUsers.length === 0 && !isLoading && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    No se encontraron usuarios que coincidan con la búsqueda o no hay usuarios registrados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
+}

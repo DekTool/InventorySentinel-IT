@@ -20,8 +20,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Loader2, UserPlus } from 'lucide-react';
+import { addUser } from '@/lib/user-data';
 
-// Define the validation schema for the user form
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
@@ -30,7 +30,8 @@ const formSchema = z.object({
   department: z.string().min(2, {
     message: "El departamento debe tener al menos 2 caracteres.",
   }),
-  phone: z.string().optional(), // Phone is optional
+  phone: z.string().optional().nullable(),
+  joinDate: z.string().optional().nullable(), // Added joinDate
 });
 
 type UserFormData = z.infer<typeof formSchema>;
@@ -47,6 +48,7 @@ export default function AddUserPage() {
       email: "",
       department: "",
       phone: "",
+      joinDate: "",
     },
   });
 
@@ -54,23 +56,24 @@ export default function AddUserPage() {
     setIsSubmitting(true);
     console.log("Form Submitted:", values);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Simulate user ID generation (replace with actual logic)
-    const generatedUserId = `USR-${Math.floor(100 + Math.random() * 900)}`;
-    console.log("Generated User ID:", generatedUserId);
-
-    setIsSubmitting(false);
-
-    toast({
-      title: "Usuario Añadido Correctamente",
-      description: `El usuario ${values.name} (ID: ${generatedUserId}) ha sido creado.`,
-      variant: "default",
-    });
-
-    // Redirect back to the users list page
-    router.push('/users');
+    try {
+      const newUser = await addUser(values);
+      toast({
+        title: "Usuario Añadido Correctamente",
+        description: `El usuario ${newUser.name} (ID: ${newUser.id}) ha sido creado.`,
+        variant: "default",
+      });
+      router.push('/users');
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast({
+        title: "Error al Añadir Usuario",
+        description: "Hubo un problema al guardar el usuario. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -133,11 +136,22 @@ export default function AddUserPage() {
                   <FormItem>
                     <FormLabel>Número de Teléfono (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="e.g., 123-456-7890" {...field} />
+                      <Input type="tel" placeholder="e.g., 123-456-7890" {...field} value={field.value ?? ""} />
                     </FormControl>
-                    <FormDescription>
-                      Introduce el número de teléfono si es necesario.
-                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="joinDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha de Incorporación (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} value={field.value ?? ""} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -149,8 +163,7 @@ export default function AddUserPage() {
             <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting} className="mr-2">
                 Cancelar
             </Button>
-            {/* Trigger the form submission via onClick */}
-            <Button type="button" form="add-user-form" disabled={isSubmitting} onClick={form.handleSubmit(onSubmit)}>
+            <Button type="submit" form="add-user-form" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
