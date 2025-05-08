@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Mail, Building, Package, Download, AlertTriangle, Loader2, UserX, Phone, Printer } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer } from "lucide-react";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from "react";
@@ -24,6 +24,8 @@ const getInitials = (name: string) => {
   if (names.length === 1) return names[0][0].toUpperCase();
   return (names[0][0] + names[names.length - 1][0]).toUpperCase();
 }
+
+type FormType = 'entrega' | 'devolucion' | 'entrega-devolucion';
 
 export default function UserDetailsPage() {
   const params = useParams();
@@ -63,16 +65,30 @@ export default function UserDetailsPage() {
   }, [fetchData]);
 
 
-  const handleGenerateReturnForm = useCallback(() => {
-      if (!user) return;
-      // Open a new tab with the printable form
-      window.open(`/users/${user.id}/print-return-form`, '_blank');
-      toast({
-        title: "Preparando Formulario",
-        description: "Se está abriendo el formulario de devolución/entrega en una nueva pestaña.",
-        variant: "default"
-      });
-  }, [user]);
+  const handleGenerateForm = useCallback((formType: FormType) => {
+    if (!user) return;
+    let toastTitle = "Preparando Formulario";
+    let toastDescription = "Se está abriendo el formulario en una nueva pestaña.";
+
+    switch(formType) {
+        case 'entrega':
+            toastDescription = "Se está abriendo el formulario de entrega en una nueva pestaña.";
+            break;
+        case 'devolucion':
+            toastDescription = "Se está abriendo el formulario de devolución en una nueva pestaña.";
+            break;
+        case 'entrega-devolucion':
+            toastDescription = "Se está abriendo el formulario de entrega/devolución en una nueva pestaña.";
+            break;
+    }
+    
+    window.open(`/users/${user.id}/print-return-form?type=${formType}`, '_blank');
+    toast({
+      title: toastTitle,
+      description: toastDescription,
+      variant: "default"
+    });
+  }, [user, toast]);
 
    const handleDeleteUser = useCallback(async () => {
     if (!user) return;
@@ -140,10 +156,15 @@ export default function UserDetailsPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Usuarios
              </Button>
         </Link>
-        <div className="flex gap-2">
-            {/* The button text now reflects it's a general form, not just for returns */}
-            <Button variant="secondary" onClick={handleGenerateReturnForm} disabled={isDeleting}>
-                <Printer className="mr-2 h-4 w-4" /> Generar Form. Devolución/Entrega
+        <div className="flex gap-2 flex-wrap">
+            <Button variant="secondary" onClick={() => handleGenerateForm('entrega')} disabled={isDeleting}>
+                <Printer className="mr-2 h-4 w-4" /> Generar Form. Entrega
+            </Button>
+            <Button variant="secondary" onClick={() => handleGenerateForm('devolucion')} disabled={isDeleting}>
+                <Printer className="mr-2 h-4 w-4" /> Generar Form. Devolución
+            </Button>
+            <Button variant="secondary" onClick={() => handleGenerateForm('entrega-devolucion')} disabled={isDeleting}>
+                <Printer className="mr-2 h-4 w-4" /> Generar Form. Entrega/Devolución
             </Button>
              <Button variant="destructive" onClick={handleDeleteUser} disabled={isDeleting}>
                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
@@ -249,5 +270,3 @@ export default function UserDetailsPage() {
     </div>
   );
 }
-
-    

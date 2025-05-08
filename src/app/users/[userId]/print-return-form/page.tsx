@@ -2,18 +2,22 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import type { User } from '@/types/user';
 import type { InventoryItem } from '@/types/inventory';
 import { getUserById } from '@/lib/user-data';
 import { getInventoryItemsByUserId } from '@/lib/inventory-data';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Assuming Button component is available
+import { Button } from '@/components/ui/button'; 
+
+type FormType = 'entrega' | 'devolucion' | 'entrega-devolucion';
 
 export default function PrintReturnFormPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const userId = params?.userId as string;
+  const formType = searchParams.get('type') as FormType | null;
 
   const [user, setUser] = useState<User | null>(null);
   const [assignedItems, setAssignedItems] = useState<InventoryItem[]>([]);
@@ -79,7 +83,6 @@ export default function PrintReturnFormPage() {
   }
 
   if (!user) {
-    // This case should ideally be caught by the error state if user fetch fails
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <AlertTriangle className="w-12 h-12 mb-4 text-muted-foreground" />
@@ -87,6 +90,13 @@ export default function PrintReturnFormPage() {
         <Button onClick={() => window.close()} variant="outline" className="mt-4">Cerrar</Button>
       </div>
     );
+  }
+  
+  let mainTitle = "Formulario de Devolución y Entrega de Equipos IT";
+  if (formType === 'entrega') {
+    mainTitle = "Formulario de Entrega de Equipos IT";
+  } else if (formType === 'devolucion') {
+    mainTitle = "Formulario de Devolución de Equipos IT";
   }
 
   return (
@@ -151,9 +161,7 @@ export default function PrintReturnFormPage() {
       `}</style>
 
       <header className="mb-6 text-center">
-        {/* Placeholder for company logo */}
-        {/* <img src="/path-to-your-logo.png" alt="Company Logo" style={{maxWidth: '150px', margin: '0 auto 1rem auto'}} className="no-print-logo" /> */}
-        <h1 className="text-xl font-bold">Formulario de Devolución y Entrega de Equipos IT</h1>
+        <h1 className="text-xl font-bold">{mainTitle}</h1>
       </header>
 
       <section className="mb-4">
@@ -166,9 +174,43 @@ export default function PrintReturnFormPage() {
         </div>
       </section>
 
-      <section className="mb-4">
-        <h2 className="text-lg font-semibold mb-1">Equipos Devueltos por el Usuario</h2>
-        {assignedItems.length > 0 ? (
+      {(formType === 'devolucion' || formType === 'entrega-devolucion' || !formType) && (
+        <section className="mb-4">
+          <h2 className="text-lg font-semibold mb-1">Equipos Devueltos por el Usuario</h2>
+          {assignedItems.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Etiqueta Activo</th>
+                  <th>Nombre Equipo</th>
+                  <th>Tipo</th>
+                  <th>N/S</th>
+                  <th>Condición (al devolver)</th>
+                  <th>Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignedItems.map(item => (
+                  <tr key={item.id}>
+                    <td>{item.id}</td>
+                    <td>{item.name}</td>
+                    <td>{item.type}</td>
+                    <td>{item.serialNumber || 'N/A'}</td>
+                    <td style={{ height: '30px', minWidth: '150px' }}></td> {/* Empty cell for handwritten condition */}
+                    <td style={{ height: '30px', minWidth: '150px' }}></td> {/* Empty cell for handwritten notes */}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No hay equipos actualmente asignados a este usuario para devolver.</p>
+          )}
+        </section>
+      )}
+
+      {(formType === 'entrega' || formType === 'entrega-devolucion' || !formType) && (
+        <section className="mb-4">
+          <h2 className="text-lg font-semibold mb-1">Nuevos Equipos Entregados al Usuario {formType === 'entrega' ? '' : '(Opcional)'}</h2>
           <table>
             <thead>
               <tr>
@@ -176,54 +218,29 @@ export default function PrintReturnFormPage() {
                 <th>Nombre Equipo</th>
                 <th>Tipo</th>
                 <th>N/S</th>
-                <th>Condición (al devolver)</th>
                 <th>Observaciones</th>
               </tr>
             </thead>
             <tbody>
-              {assignedItems.map(item => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.name}</td>
-                  <td>{item.type}</td>
-                  <td>{item.serialNumber || 'N/A'}</td>
-                  <td style={{ height: '30px', minWidth: '150px' }}></td> {/* Empty cell for handwritten condition */}
-                  <td style={{ height: '30px', minWidth: '150px' }}></td> {/* Empty cell for handwritten notes */}
+              {[1, 2, 3].map(i => ( 
+                <tr key={`new-${i}`}>
+                  <td style={{ height: '30px' }}></td>
+                  <td style={{ height: '30px' }}></td>
+                  <td style={{ height: '30px' }}></td>
+                  <td style={{ height: '30px' }}></td>
+                  <td style={{ height: '30px' }}></td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <p>No hay equipos actualmente asignados a este usuario para devolver.</p>
-        )}
-      </section>
+          <p className="text-xs mt-1">
+             {formType === 'entrega'
+              ? 'Rellenar esta sección con los equipos entregados.'
+              : 'Rellenar esta sección si se entregan equipos de reemplazo o adicionales durante este proceso.'}
+          </p>
+        </section>
+      )}
 
-      <section className="mb-4">
-        <h2 className="text-lg font-semibold mb-1">Nuevos Equipos Entregados al Usuario (Opcional)</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Etiqueta Activo</th>
-              <th>Nombre Equipo</th>
-              <th>Tipo</th>
-              <th>N/S</th>
-              <th>Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[1, 2, 3].map(i => ( // Three empty rows for manual entry
-              <tr key={`new-${i}`}>
-                <td style={{ height: '30px' }}></td>
-                <td style={{ height: '30px' }}></td>
-                <td style={{ height: '30px' }}></td>
-                <td style={{ height: '30px' }}></td>
-                <td style={{ height: '30px' }}></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="text-xs mt-1">Rellenar esta sección si se entregan equipos de reemplazo o adicionales durante este proceso.</p>
-      </section>
 
       <section className="mt-8 signature-section">
         <div style={{ display: 'flex', justifyContent: 'space-around', gap: '2rem', paddingTop: '2rem' }}>
@@ -250,5 +267,3 @@ export default function PrintReturnFormPage() {
     </div>
   );
 }
-
-    
