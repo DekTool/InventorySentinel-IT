@@ -2,10 +2,10 @@
 "use client";
 
 import type React from 'react';
-import { useEffect, useState } from 'react'; // Import useEffect and useState
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound } from 'lucide-react'; 
+import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import {
   SidebarContent,
@@ -83,6 +83,20 @@ export function AppSidebar() {
                 <a>
                   <KeyRound />
                   <span>Licencias</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/pedidos" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/pedidos')}
+                tooltip="Pedidos"
+              >
+                <a>
+                  <ShoppingCart />
+                  <span>Pedidos</span>
                 </a>
               </SidebarMenuButton>
             </Link>
