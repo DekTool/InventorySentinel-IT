@@ -21,7 +21,7 @@ export interface InventoryItem {
   type: InventoryItemType;
   status: InventoryItemStatus;
   barcode: string;
-  serialNumber?: string | null;
+  serialNumber?: string | null; // General serial number
   purchaseDate?: string | null; 
   warrantyEndDate?: string | null; 
   notes?: string | null;
@@ -65,9 +65,22 @@ export interface InventoryItem {
   softwareInstaladoAdicional?: string | null;
   ficheroPlataformadoEntregado?: boolean | null;
 
-  // Printer-related software/config on the endpoint (if applicable)
+  // Printer-related software/config on the endpoint (if applicable for Portátil/Sobremesa connecting to printer)
   numeroPlantaImpresora?: string | null;
   driverImpresoraInstalado?: boolean | null;
   codigoUsuarioImpresora?: string | null;
   impresoraConfigurada?: boolean | null;
+
+  // Mobile-specific fields
+  imeisMovil?: string | null;
+  marcaModeloMovil?: string | null;
+  direccionMacWifiMovil?: string | null;
+  estadoTerminalMovil?: string | null; // e.g., Nuevo, Usado - Buen estado
+  numeroSerieMovil?: string | null; // Specific for mobile if different from general serialNumber
+  outlookDesplegadoMovil?: boolean | null;
+  teamsDesplegadoMovil?: boolean | null;
+  harmonyMobileInstalado?: boolean | null;
+  pruebaLlamadasMovil?: boolean | null;
+  teamviewerEnMovil?: boolean | null;
+  idTeamviewerMovil?: string | null;
 }

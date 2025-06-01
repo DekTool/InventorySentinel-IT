@@ -1,10 +1,21 @@
 
 import type { InventoryItem, InventoryItemStatus, InventoryItemType } from '@/types/inventory';
 
-// Helper to add default endpoint fields to an item
-const addDefaultEndpointFields = (item: Partial<InventoryItem>): Partial<InventoryItem> => {
+// Helper to initialize common default fields
+const initializeCommonFields = (item: Partial<InventoryItem>): Partial<InventoryItem> => {
   return {
-    ...item,
+    serialNumber: item.serialNumber || null,
+    purchaseDate: item.purchaseDate || null,
+    warrantyEndDate: item.warrantyEndDate || null,
+    notes: item.notes || null,
+    assignedTo: item.assignedTo || null,
+    assignedToId: item.assignedToId || null,
+  };
+};
+
+// Helper to initialize desktop/laptop specific fields
+const initializeDesktopLaptopSpecificFields = (item: Partial<InventoryItem>): Partial<InventoryItem> => {
+  return {
     usuarioAdminLocalEstablecido: item.usuarioAdminLocalEstablecido || null,
     marcaModeloEndpoint: item.marcaModeloEndpoint || null,
     codigoBitlockerEnRepositorio: item.codigoBitlockerEnRepositorio || false,
@@ -47,81 +58,78 @@ const addDefaultEndpointFields = (item: Partial<InventoryItem>): Partial<Invento
   };
 };
 
+// Helper to initialize mobile specific fields
+const initializeMobileSpecificFields = (item: Partial<InventoryItem>): Partial<InventoryItem> => {
+  return {
+    imeisMovil: item.imeisMovil || null,
+    marcaModeloMovil: item.marcaModeloMovil || null,
+    direccionMacWifiMovil: item.direccionMacWifiMovil || null,
+    estadoTerminalMovil: item.estadoTerminalMovil || null,
+    numeroSerieMovil: item.numeroSerieMovil || null,
+    outlookDesplegadoMovil: item.outlookDesplegadoMovil || false,
+    teamsDesplegadoMovil: item.teamsDesplegadoMovil || false,
+    harmonyMobileInstalado: item.harmonyMobileInstalado || false,
+    pruebaLlamadasMovil: item.pruebaLlamadasMovil || false,
+    teamviewerEnMovil: item.teamviewerEnMovil || false,
+    idTeamviewerMovil: item.idTeamviewerMovil || null,
+  };
+};
+
 
 let mockInventoryItems: InventoryItem[] = [
-  addDefaultEndpointFields({ 
+  { 
     id: 'ASSET-001', 
     name: 'Laptop Pro 15"', 
     type: 'Portátil', 
     status: 'Asignado', 
-    assignedTo: 'Alice Smith (asmith@example.com)', 
-    assignedToId: 'USR-001', 
     barcode: '123456789012', 
-    serialNumber: 'SN123XYZ', 
-    purchaseDate: '2023-01-15', 
-    warrantyEndDate: '2026-01-14', 
-    notes: 'Pequeño arañazo en la tapa.',
-    // Example endpoint data
-    nombreAsignadoEndpoint: 'ALICE-LAPTOP',
-    windowsVersion: '11 Pro',
-    bitlockerActivo: true,
-    office365instalado: true,
-  }) as InventoryItem,
-  addDefaultEndpointFields({ 
+    ...initializeCommonFields({ serialNumber: 'SN123XYZ', purchaseDate: '2023-01-15', warrantyEndDate: '2026-01-14', notes: 'Pequeño arañazo en la tapa.', assignedTo: 'Alice Smith (asmith@example.com)', assignedToId: 'USR-001' }),
+    ...initializeDesktopLaptopSpecificFields({ nombreAsignadoEndpoint: 'ALICE-LAPTOP', windowsVersion: '11 Pro', bitlockerActivo: true, office365instalado: true, idiomaWindowsEstablecido: 'Inglés', statusActividadEndpoint: 'En uso diario' }),
+    ...initializeMobileSpecificFields({}), // Initialize mobile fields to defaults (null/false)
+  } as InventoryItem,
+  { 
     id: 'ASSET-002', 
     name: 'Ratón Inalámbrico X', 
     type: 'Ratón', 
     status: 'En Stock', 
-    assignedTo: null, 
-    assignedToId: null, 
     barcode: '987654321098', 
-    serialNumber: 'SN456ABC', 
-    purchaseDate: '2023-05-20', 
-    warrantyEndDate: '2024-05-19', 
-    notes: '' 
-  }) as InventoryItem,
-  addDefaultEndpointFields({ 
+    ...initializeCommonFields({ serialNumber: 'SN456ABC', purchaseDate: '2023-05-20', warrantyEndDate: '2024-05-19' }),
+    ...initializeDesktopLaptopSpecificFields({}),
+    ...initializeMobileSpecificFields({}),
+  } as InventoryItem,
+  { 
     id: 'ASSET-003', 
     name: 'Docking Station Z', 
     type: 'Docking Station', 
     status: 'Asignado', 
-    assignedTo: 'Bob Johnson (bjohnson@example.com)', 
-    assignedToId: 'USR-002', 
     barcode: '112233445566', 
-    serialNumber: 'SNDEF789', 
-    purchaseDate: '2022-11-01', 
-    warrantyEndDate: '2024-10-31', 
-    notes: 'Requiere adaptador de corriente específico.' 
-  }) as InventoryItem,
-  addDefaultEndpointFields({ 
+    ...initializeCommonFields({ serialNumber: 'SNDEF789', purchaseDate: '2022-11-01', warrantyEndDate: '2024-10-31', notes: 'Requiere adaptador de corriente específico.', assignedTo: 'Bob Johnson (bjohnson@example.com)', assignedToId: 'USR-002' }),
+    ...initializeDesktopLaptopSpecificFields({}),
+    ...initializeMobileSpecificFields({}),
+  } as InventoryItem,
+  { 
     id: 'ASSET-004', 
     name: 'Teléfono Móvil S23', 
     type: 'Móvil', 
     status: 'En Stock', 
-    assignedTo: null, 
-    assignedToId: null, 
     barcode: '778899001122', 
-    serialNumber: 'SNMOB001', 
-    purchaseDate: '2024-02-10', 
-    warrantyEndDate: '2026-02-09', 
-    notes: 'Versión desbloqueada.' 
-  }) as InventoryItem,
-  addDefaultEndpointFields({ 
+    ...initializeCommonFields({ serialNumber: 'SNMOBGEN001', purchaseDate: '2024-02-10', warrantyEndDate: '2026-02-09', notes: 'Versión desbloqueada.' }),
+    ...initializeDesktopLaptopSpecificFields({}),
+    ...initializeMobileSpecificFields({ imeisMovil: '123456789012345', marcaModeloMovil: 'Samsung Galaxy S23', estadoTerminalMovil: 'Nuevo en caja', numeroSerieMovil: 'SNMOBS23001', outlookDesplegadoMovil: false, teamsDesplegadoMovil: false }),
+  } as InventoryItem,
+  { 
     id: 'ASSET-005', 
     name: 'Monitor 27" 4K', 
     type: 'Monitor', 
     status: 'Asignado', 
-    assignedTo: 'Alice Smith (asmith@example.com)', 
-    assignedToId: 'USR-001', 
     barcode: '334455667788', 
-    serialNumber: 'SNMON4K01', 
-    purchaseDate: '2023-08-05', 
-    warrantyEndDate: '2026-08-04', 
-    notes: 'Incluye cable HDMI.' 
-  }) as InventoryItem,
-   addDefaultEndpointFields({ id: 'ASSET-006', name: 'Keyboard K1', type: 'Teclado', status: 'Asignado', assignedToId: 'USR-004', assignedTo: 'Diana Prince (dprince@example.com)', barcode: 'KB001', purchaseDate: '2021-06-01', serialNumber: 'SNKB001', warrantyEndDate: '2023-05-31', notes: '' }) as InventoryItem,
-   addDefaultEndpointFields({ id: 'ASSET-007', name: 'Dev Laptop X', type: 'Portátil', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'DEVLP01', purchaseDate: '2020-01-15', serialNumber: 'SNDEVLP01', warrantyEndDate: '2023-01-14', notes: 'For development purposes', nombreAsignadoEndpoint: 'ETHAN-DEVBOX', windowsVersion: '10 Pro', antimalwareInstalado: true }) as InventoryItem,
-   addDefaultEndpointFields({ id: 'ASSET-008', name: 'Server Rack R1', type: 'Servidor', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'SRVR01', purchaseDate: '2020-01-15', serialNumber: 'SNSRVR01', warrantyEndDate: '2025-01-14', notes: 'Main web server' }) as InventoryItem,
+    ...initializeCommonFields({ serialNumber: 'SNMON4K01', purchaseDate: '2023-08-05', warrantyEndDate: '2026-08-04', notes: 'Incluye cable HDMI.', assignedTo: 'Alice Smith (asmith@example.com)', assignedToId: 'USR-001' }),
+    ...initializeDesktopLaptopSpecificFields({}),
+    ...initializeMobileSpecificFields({}),
+  } as InventoryItem,
+   { id: 'ASSET-006', name: 'Keyboard K1', type: 'Teclado', status: 'Asignado', barcode: 'KB001', ...initializeCommonFields({ assignedToId: 'USR-004', assignedTo: 'Diana Prince (dprince@example.com)', purchaseDate: '2021-06-01', serialNumber: 'SNKB001', warrantyEndDate: '2023-05-31' }), ...initializeDesktopLaptopSpecificFields({}), ...initializeMobileSpecificFields({}) } as InventoryItem,
+   { id: 'ASSET-007', name: 'Dev Laptop X', type: 'Portátil', status: 'Asignado', barcode: 'DEVLP01', ...initializeCommonFields({ assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', purchaseDate: '2020-01-15', serialNumber: 'SNDEVLP01', warrantyEndDate: '2023-01-14', notes: 'For development purposes' }), ...initializeDesktopLaptopSpecificFields({ nombreAsignadoEndpoint: 'ETHAN-DEVBOX', windowsVersion: '10 Pro', antimalwareInstalado: true }), ...initializeMobileSpecificFields({}) } as InventoryItem,
+   { id: 'ASSET-008', name: 'Server Rack R1', type: 'Servidor', status: 'Asignado', barcode: 'SRVR01', ...initializeCommonFields({ assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', purchaseDate: '2020-01-15', serialNumber: 'SNSRVR01', warrantyEndDate: '2025-01-14', notes: 'Main web server' }), ...initializeDesktopLaptopSpecificFields({}), ...initializeMobileSpecificFields({}) } as InventoryItem,
 ];
 
 export async function getAllInventoryItems(): Promise<InventoryItem[]> {
@@ -149,23 +157,26 @@ export async function addInventoryItem(itemData: Omit<InventoryItem, 'id'>): Pro
   await new Promise(resolve => setTimeout(resolve, 100));
   const newId = `ASSET-${String(mockInventoryItems.length + 1).padStart(3, '0')}`;
   
-  const newItemBase: InventoryItem = {
+  let newItem: InventoryItem = {
     id: newId,
     name: itemData.name,
     type: itemData.type,
     status: itemData.status,
     barcode: itemData.barcode,
-    serialNumber: itemData.serialNumber || null,
-    purchaseDate: itemData.purchaseDate || null,
-    warrantyEndDate: itemData.warrantyEndDate || null,
-    notes: itemData.notes || null,
-    assignedTo: itemData.assignedTo || null,
-    assignedToId: itemData.assignedToId || null,
+    ...initializeCommonFields(itemData),
+    ...initializeDesktopLaptopSpecificFields({}), // Start with empty PC fields
+    ...initializeMobileSpecificFields({}),    // Start with empty Mobile fields
   };
 
-  const newItem = addDefaultEndpointFields(newItemBase) as InventoryItem;
+  // Populate specific fields based on item type and provided data
+  if (itemData.type === 'Portátil' || itemData.type === 'Sobremesa') {
+    newItem = { ...newItem, ...initializeDesktopLaptopSpecificFields(itemData) };
+  } else if (itemData.type === 'Móvil') {
+    newItem = { ...newItem, ...initializeMobileSpecificFields(itemData) };
+  }
   
-  // Populate specific endpoint fields if provided
+  // Ensure all provided fields in itemData overwrite defaults if they exist
+  // This is a bit redundant if initialize functions already take itemData, but ensures all keys are covered.
   for (const key in itemData) {
     if (Object.prototype.hasOwnProperty.call(itemData, key) && key !== 'id') {
       // @ts-ignore
@@ -182,6 +193,7 @@ export async function updateInventoryItem(id: string, itemUpdateData: Partial<Om
   await new Promise(resolve => setTimeout(resolve, 100));
   const itemIndex = mockInventoryItems.findIndex(i => i.id === id);
   if (itemIndex !== -1) {
+    // Ensure all fields from itemUpdateData are applied, even if they are specific to a type
     mockInventoryItems[itemIndex] = { ...mockInventoryItems[itemIndex], ...itemUpdateData };
     return { ...mockInventoryItems[itemIndex] };
   }

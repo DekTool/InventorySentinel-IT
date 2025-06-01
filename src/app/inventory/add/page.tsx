@@ -98,7 +98,21 @@ const endpointSchemaFields = {
   impresoraConfigurada: booleanStringTransform,
 };
 
-const formSchema = z.object({ ...baseSchema, ...endpointSchemaFields });
+const mobileSchemaFields = {
+  imeisMovil: z.string().optional().nullable(),
+  marcaModeloMovil: z.string().optional().nullable(),
+  direccionMacWifiMovil: z.string().optional().nullable(),
+  estadoTerminalMovil: z.string().optional().nullable(),
+  numeroSerieMovil: z.string().optional().nullable(),
+  outlookDesplegadoMovil: booleanStringTransform,
+  teamsDesplegadoMovil: booleanStringTransform,
+  harmonyMobileInstalado: booleanStringTransform,
+  pruebaLlamadasMovil: booleanStringTransform,
+  teamviewerEnMovil: booleanStringTransform,
+  idTeamviewerMovil: z.string().optional().nullable(),
+};
+
+const formSchema = z.object({ ...baseSchema, ...endpointSchemaFields, ...mobileSchemaFields });
 
 type ItemFormData = z.infer<typeof formSchema>;
 
@@ -112,7 +126,7 @@ function renderSelectBooleanField(form: any, name: keyof ItemFormData, label: st
           <FormLabel>{label}</FormLabel>
           <Select 
             onValueChange={field.onChange} 
-            value={field.value?.toString()} // Booleans need to be strings for Select value
+            value={field.value?.toString()} 
             defaultValue={field.value === true ? "true" : field.value === false ? "false" : undefined}
           >
             <FormControl>
@@ -143,7 +157,7 @@ export default function AddInventoryItemPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: "Portátil",
+      type: "Portátil", // Default type
       serialNumber: "",
       barcode: "", 
       purchaseDate: "",
@@ -152,7 +166,7 @@ export default function AddInventoryItemPage() {
       status: "En Stock",
       assignedTo: "",
       assignedToId: "",
-      // Default endpoint fields to 'false' as string for select or empty/null
+      // Default endpoint fields (applied if type is Portátil/Sobremesa)
       usuarioAdminLocalEstablecido: "",
       marcaModeloEndpoint: "",
       codigoBitlockerEnRepositorio: "false",
@@ -181,9 +195,9 @@ export default function AddInventoryItemPage() {
       softphoneEnEndpoint: "false",
       qgisInstalado: "false",
       pdf24instalado: "false",
-      idiomaWindowsEstablecido: "Español",
+      idiomaWindowsEstablecido: "Español", // Specific default for endpoint
       firefoxChromeInstalado: "false",
-      statusActividadEndpoint: "Active",
+      statusActividadEndpoint: "Active", // Specific default for endpoint
       visorDwgInstalado: "false",
       windowsVersion: "",
       softwareInstaladoAdicional: "",
@@ -192,6 +206,18 @@ export default function AddInventoryItemPage() {
       driverImpresoraInstalado: "false",
       codigoUsuarioImpresora: "",
       impresoraConfigurada: "false",
+      // Default mobile fields (applied if type is Móvil)
+      imeisMovil: "",
+      marcaModeloMovil: "",
+      direccionMacWifiMovil: "",
+      estadoTerminalMovil: "",
+      numeroSerieMovil: "",
+      outlookDesplegadoMovil: "false",
+      teamsDesplegadoMovil: "false",
+      harmonyMobileInstalado: "false",
+      pruebaLlamadasMovil: "false",
+      teamviewerEnMovil: "false",
+      idTeamviewerMovil: "",
     },
   });
 
@@ -200,17 +226,23 @@ export default function AddInventoryItemPage() {
   async function onSubmit(values: ItemFormData) {
     setIsSubmitting(true);
     
-    // Transform string "true"/"false" to boolean for boolean fields
     const transformedValues: any = { ...values };
-    for (const key in endpointSchemaFields) {
-      if (Object.prototype.hasOwnProperty.call(endpointSchemaFields, key) && transformedValues[key] !== undefined && transformedValues[key] !== null) {
-        if (endpointSchemaFields[key as keyof typeof endpointSchemaFields] === booleanStringTransform) {
-           transformedValues[key] = transformedValues[key] === "true";
+    // Transform string "true"/"false" to boolean for all boolean-like fields in the schema
+    for (const key in formSchema.shape) {
+      if (Object.prototype.hasOwnProperty.call(formSchema.shape, key)) {
+        // @ts-ignore
+        const fieldSchema = formSchema.shape[key];
+        // Check if it's our booleanStringTransform or a direct boolean that got a string
+        if (
+            (fieldSchema._def.typeName === 'ZodOptional' || fieldSchema._def.typeName === 'ZodNullable') &&
+            fieldSchema._def.innerType?._def?.typeName === 'ZodEffects' && // ZodEffects is from .transform()
+            (values[key as keyof ItemFormData] === "true" || values[key as keyof ItemFormData] === "false")
+           ) {
+             transformedValues[key] = values[key as keyof ItemFormData] === "true";
         }
       }
     }
     console.log("Form Submitted (transformed):", transformedValues);
-
 
     try {
       const newItem = await addInventoryItem(transformedValues as Omit<InventoryItem, 'id'>);
@@ -302,9 +334,9 @@ export default function AddInventoryItemPage() {
                 name="serialNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Número de Serie (Opcional)</FormLabel>
+                    <FormLabel>Número de Serie General (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Introduce el número de serie" {...field} value={field.value ?? ""} />
+                      <Input placeholder="Introduce el número de serie general" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -390,11 +422,10 @@ export default function AddInventoryItemPage() {
                 )}
               />
 
-
               {(itemType === "Portátil" || itemType === "Sobremesa") && (
                 <>
                   <Separator className="my-6" />
-                  <h3 className="text-xl font-semibold text-primary border-b pb-2">Detalles del Endpoint</h3>
+                  <h3 className="text-xl font-semibold text-primary border-b pb-2">Detalles del Endpoint (PC/Laptop)</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <FormField control={form.control} name="marcaModeloEndpoint" render={({ field }) => (<FormItem><FormLabel>Marca y Modelo Específico</FormLabel><FormControl><Input placeholder="Ej: Dell XPS 15 9530" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="nombreAsignadoEndpoint" render={({ field }) => (<FormItem><FormLabel>Nombre de Host/NetBIOS</FormLabel><FormControl><Input placeholder="Ej: ES-LPT-ASmith" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
@@ -410,11 +441,8 @@ export default function AddInventoryItemPage() {
                     <FormField control={form.control} name="windowsVersion" render={({ field }) => (<FormItem><FormLabel>Versión Windows</FormLabel><FormControl><Input placeholder="Ej: 11 Pro, 10 Enterprise" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="idiomaWindowsEstablecido" render={({ field }) => (<FormItem><FormLabel>Idioma Windows</FormLabel><FormControl><Input placeholder="Ej: Español (España)" {...field} value={field.value ?? "Español"} /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="statusActividadEndpoint" render={({ field }) => (<FormItem><FormLabel>Estado Actividad Endpoint</FormLabel><FormControl><Input placeholder="Ej: Active" {...field} value={field.value ?? "Active"} /></FormControl><FormMessage /></FormItem>)} />
-
-
                     <Separator className="md:col-span-2 lg:col-span-3 my-2" />
-                    <h4 className="text-md font-medium text-muted-foreground md:col-span-2 lg:col-span-3">Software y Configuración</h4>
-                    
+                    <h4 className="text-md font-medium text-muted-foreground md:col-span-2 lg:col-span-3">Software y Configuración (Endpoint)</h4>
                     {renderSelectBooleanField(form, "teamviewerCorporativoInstalado", "TeamViewer Corp. Instalado")}
                     {renderSelectBooleanField(form, "teamviewerEnEndpoint", "TeamViewer en Endpoint")}
                     <FormField control={form.control} name="idTeamviewerEndpoint" render={({ field }) => (<FormItem><FormLabel>ID TeamViewer Endpoint</FormLabel><FormControl><Input placeholder="123 456 789" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
@@ -435,8 +463,7 @@ export default function AddInventoryItemPage() {
                     {renderSelectBooleanField(form, "pdf24instalado", "PDF24 Instalado")}
                     {renderSelectBooleanField(form, "firefoxChromeInstalado", "Firefox y/o Chrome Instalado")}
                     {renderSelectBooleanField(form, "visorDwgInstalado", "Visor DWG Instalado")}
-                    <FormField control={form.control} name="softwareInstaladoAdicional" render={({ field }) => (<FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Otro Software Instalado</FormLabel><FormControl><Textarea placeholder="Listar otro software..." {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
-                    
+                    <FormField control={form.control} name="softwareInstaladoAdicional" render={({ field }) => (<FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Otro Software Instalado (Endpoint)</FormLabel><FormControl><Textarea placeholder="Listar otro software..." {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                     <Separator className="md:col-span-2 lg:col-span-3 my-2" />
                     <h4 className="text-md font-medium text-muted-foreground md:col-span-2 lg:col-span-3">Configuración de Impresora (en Endpoint)</h4>
                     <FormField control={form.control} name="numeroPlantaImpresora" render={({ field }) => (<FormItem><FormLabel>Nº Planta Impresora</FormLabel><FormControl><Input placeholder="Ej: P02" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
@@ -446,6 +473,27 @@ export default function AddInventoryItemPage() {
                   </div>
                 </>
               )}
+
+              {itemType === "Móvil" && (
+                <>
+                  <Separator className="my-6" />
+                  <h3 className="text-xl font-semibold text-primary border-b pb-2">Detalles del Móvil</h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField control={form.control} name="imeisMovil" render={({ field }) => (<FormItem><FormLabel>IMEI(s) del Móvil</FormLabel><FormControl><Input placeholder="IMEI1, IMEI2 (si dual SIM)" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="marcaModeloMovil" render={({ field }) => (<FormItem><FormLabel>Marca y Modelo de Móvil</FormLabel><FormControl><Input placeholder="Ej: Samsung Galaxy S23, iPhone 15 Pro" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="direccionMacWifiMovil" render={({ field }) => (<FormItem><FormLabel>Dirección MAC WiFi Móvil</FormLabel><FormControl><Input placeholder="00:1A:2B:3C:4D:EE" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="estadoTerminalMovil" render={({ field }) => (<FormItem><FormLabel>Estado del Terminal</FormLabel><FormControl><Input placeholder="Ej: Nuevo, Usado - Buen estado, Pantalla Rota" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="numeroSerieMovil" render={({ field }) => (<FormItem><FormLabel>Número de Serie del Móvil</FormLabel><FormControl><Input placeholder="N/S específico del móvil" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "outlookDesplegadoMovil", "Outlook Desplegado en Móvil")}
+                    {renderSelectBooleanField(form, "teamsDesplegadoMovil", "Teams Desplegado en Móvil")}
+                    {renderSelectBooleanField(form, "harmonyMobileInstalado", "Harmony Mobile Instalado")}
+                    {renderSelectBooleanField(form, "pruebaLlamadasMovil", "Prueba de Llamadas Móvil OK")}
+                    {renderSelectBooleanField(form, "teamviewerEnMovil", "TeamViewer en Móvil")}
+                    <FormField control={form.control} name="idTeamviewerMovil" render={({ field }) => (<FormItem><FormLabel>ID TeamViewer Móvil</FormLabel><FormControl><Input placeholder="ID de TeamViewer" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                  </div>
+                </>
+              )}
+
 
               <Separator className="my-6"/>
               <FormField

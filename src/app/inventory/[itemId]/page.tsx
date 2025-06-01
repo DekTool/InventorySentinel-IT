@@ -4,13 +4,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Trash2, User, Calendar, Tag, Barcode, Info, Printer, Loader2, AlertTriangle, Wifi, Cable, Server, Key, Settings, HardDrive, MonitorIcon as MonitorLucideIcon } from "lucide-react"; // Added more icons
+import { ArrowLeft, Edit, Trash2, User, Calendar, Tag, Barcode, Info, Printer, Loader2, AlertTriangle, Wifi, Cable, Server, Key, Settings, HardDrive, MonitorIcon as MonitorLucideIcon, Smartphone, Mail } from "lucide-react"; 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import type { InventoryItem } from '@/types/inventory';
 import { getInventoryItemById, deleteInventoryItem } from '@/lib/inventory-data';
+import { cn } from "@/lib/utils";
+
 
 // Helper component to display a detail item
 const DetailItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.ElementType, fullWidth?: boolean, className?: string }> = ({ label, value, icon: Icon, fullWidth, className }) => (
@@ -162,6 +164,7 @@ export default function InventoryItemDetailsPage() {
   }
 
   const isEndpointType = item.type === 'Portátil' || item.type === 'Sobremesa';
+  const isMobileType = item.type === 'Móvil';
 
   return (
     <div className="flex flex-col h-full p-4 md:p-8 space-y-6">
@@ -206,7 +209,7 @@ export default function InventoryItemDetailsPage() {
                  <Separator className="my-2"/>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm">
                     <DetailItem label="Código Barras" value={item.barcode} icon={Barcode}/>
-                    <DetailItem label="N/S" value={item.serialNumber} />
+                    <DetailItem label="N/S General" value={item.serialNumber} />
                     <DetailItem label="Fecha Compra/Entrada" value={item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'} icon={Calendar}/>
                     <DetailItem label="Fin Garantía" value={item.warrantyEndDate ? new Date(item.warrantyEndDate).toLocaleDateString() : 'N/A'} icon={Calendar}/>
                     <DetailItem label="Estado" value={<span className={`px-2 py-0.5 rounded-full text-xs ${
@@ -239,7 +242,7 @@ export default function InventoryItemDetailsPage() {
         <Card className="w-full max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
-              <HardDrive className="w-5 h-5" /> Detalles del Endpoint
+              <HardDrive className="w-5 h-5" /> Detalles del Endpoint (PC/Laptop)
             </CardTitle>
             <CardDescription>Información específica de configuración y software para este {item.type}.</CardDescription>
           </CardHeader>
@@ -261,7 +264,7 @@ export default function InventoryItemDetailsPage() {
                 <DetailItem label="Estado Actividad Endpoint" value={item.statusActividadEndpoint} />
             </div>
             <Separator className="my-3"/>
-             <h4 className="font-medium text-md text-muted-foreground">Software y Configuración</h4>
+             <h4 className="font-medium text-md text-muted-foreground">Software y Configuración (Endpoint)</h4>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm">
                 <DetailItem label="TeamViewer Corp. Instalado" value={item.teamviewerCorporativoInstalado} />
                 <DetailItem label="TeamViewer en Endpoint" value={item.teamviewerEnEndpoint} />
@@ -297,7 +300,34 @@ export default function InventoryItemDetailsPage() {
         </Card>
       )}
 
-      <Card className="w-full max-w-4xl mx-auto">
+      {isMobileType && (
+        <Card className="w-full max-w-4xl mx-auto mt-6">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Smartphone className="w-5 h-5" /> Detalles del Móvil
+            </CardTitle>
+            <CardDescription>Información específica para este dispositivo móvil.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm">
+                <DetailItem label="IMEI(s)" value={item.imeisMovil} />
+                <DetailItem label="Marca y Modelo" value={item.marcaModeloMovil} />
+                <DetailItem label="MAC WiFi Móvil" value={item.direccionMacWifiMovil} icon={Wifi} />
+                <DetailItem label="Estado del Terminal" value={item.estadoTerminalMovil} />
+                <DetailItem label="N/S del Móvil" value={item.numeroSerieMovil} />
+                <DetailItem label="Outlook Desplegado" value={item.outlookDesplegadoMovil} icon={Mail} />
+                <DetailItem label="Teams Desplegado" value={item.teamsDesplegadoMovil} />
+                <DetailItem label="Harmony Mobile Instalado" value={item.harmonyMobileInstalado} />
+                <DetailItem label="Prueba de Llamadas OK" value={item.pruebaLlamadasMovil} />
+                <DetailItem label="TeamViewer en Móvil" value={item.teamviewerEnMovil} />
+                <DetailItem label="ID TeamViewer Móvil" value={item.idTeamviewerMovil} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
+      <Card className="w-full max-w-4xl mx-auto mt-6">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2"><Info className="w-5 h-5"/> Historial del Equipo</CardTitle>
             <CardDescription>Registro de asignaciones, cambios de estado y mantenimiento.</CardDescription>
