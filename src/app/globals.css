@@ -8,87 +8,87 @@ body {
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%; /* Slightly lighter than pure black for depth */
+    --background: 240 6% 2%; /* Deeper, cooler black */
     --foreground: 0 0% 98%; /* White */
 
-    --card: 0 0% 10%; /* Black Carbon for cards */
+    --card: 240 5% 6%; /* Cool dark grey for cards */
     --card-foreground: 0 0% 98%; /* White text on cards */
 
-    --popover: 0 0% 10%; /* Black Carbon for popovers */
+    --popover: 240 5% 6%; /* Match card background */
     --popover-foreground: 0 0% 98%; /* White text on popovers */
 
-    --primary: 30 100% 50%; /* Orange */
+    --primary: 30 100% 50%; /* Orange - kept as is */
     --primary-foreground: 0 0% 10%; /* Dark text on orange */
 
-    --secondary: 0 0% 10%; /* Black Carbon */
+    --secondary: 0 0% 10%; /* Original Black Carbon for secondary elements if needed */
     --secondary-foreground: 0 0% 98%; /* White text on black carbon */
 
-    --muted: 0 0% 15%; /* Slightly lighter black carbon */
+    --muted: 240 5% 8%; /* Muted background, consistent with new theme */
     --muted-foreground: 0 0% 63.9%; /* Lighter gray text */
 
-    --accent: 140 45% 35%; /* Green */
+    --accent: 140 55% 45%; /* Slightly more vibrant green */
     --accent-foreground: 0 0% 98%; /* White text on green */
 
     --destructive: 0 84.2% 60.2%; /* Default Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 20%; /* Darker border */
-    --input: 0 0% 20%; /* Darker input background */
-    --ring: 30 100% 50%; /* Orange ring */
+    --border: 240 5% 10%; /* Subtle, cool dark grey border */
+    --input: 240 5% 10%; /* Match border for input background */
+    --ring: 30 100% 50%; /* Orange ring - kept as is for focus */
 
     --chart-1: 30 100% 50%; /* Orange */
-    --chart-2: 140 45% 35%; /* Green */
+    --chart-2: 140 55% 45%; /* Updated Green */
     --chart-3: 210 40% 96.1%; /* Light Blue */
     --chart-4: 60 90% 60%; /* Yellow */
     --chart-5: 0 0% 63.9%; /* Gray */
 
     --radius: 0.5rem;
 
-    /* Custom Sidebar variables matching the dark theme */
-    --sidebar-background: 0 0% 10%; /* Black Carbon */
+    /* Custom Sidebar variables matching the new dark theme */
+    --sidebar-background: 240 5% 6%; /* Match card background */
     --sidebar-foreground: 0 0% 98%; /* White */
     --sidebar-primary: 30 100% 50%; /* Orange */
     --sidebar-primary-foreground: 0 0% 10%; /* Dark text on orange */
-    --sidebar-accent: 140 45% 35%; /* Green */
+    --sidebar-accent: 140 55% 45%; /* Updated Green */
     --sidebar-accent-foreground: 0 0% 98%; /* White text on green */
-    --sidebar-border: 0 0% 20%; /* Darker border */
+    --sidebar-border: 240 5% 10%; /* Match border */
     --sidebar-ring: 30 100% 50%; /* Orange ring */
   }
 
   .dark {
      /* Dark theme variables are now the default root variables */
-    --background: 240 10% 3.9%;
+    --background: 240 6% 2%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 10%;
+    --card: 240 5% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 10%;
+    --popover: 240 5% 6%;
     --popover-foreground: 0 0% 98%;
     --primary: 30 100% 50%;
     --primary-foreground: 0 0% 10%;
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
+    --muted: 240 5% 8%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 140 45% 35%;
+    --accent: 140 55% 45%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 72.2% 50.6%; /* Slightly adjusted Red for dark */
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
+    --border: 240 5% 10%;
+    --input: 240 5% 10%;
     --ring: 30 100% 50%;
     --chart-1: 30 100% 50%;
-    --chart-2: 140 45% 35%;
+    --chart-2: 140 55% 45%;
     --chart-3: 210 40% 96.1%;
     --chart-4: 60 90% 60%;
     --chart-5: 0 0% 63.9%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 10%;
+    --sidebar-background: 240 5% 6%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 30 100% 50%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 140 45% 35%;
+    --sidebar-accent: 140 55% 45%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 20%;
+    --sidebar-border: 240 5% 10%;
     --sidebar-ring: 30 100% 50%;
   }
 }
