@@ -35,6 +35,7 @@ const basicFormSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, introduce un email válido." }),
   role: z.enum(userRoles as [UserRole, ...UserRole[]]),
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
 });
 
 type BasicUserFormData = z.infer<typeof basicFormSchema>;
@@ -50,6 +51,7 @@ export default function AddBasicUserPage() {
       name: "",
       email: "",
       role: "Usuario",
+      password: "",
     },
   });
 
@@ -58,16 +60,11 @@ export default function AddBasicUserPage() {
     console.log("Basic User Form Submitted:", values);
 
     try {
-      // addUser expects more fields, but they are optional and will be defaulted
-      // in the addUser function in user-data.ts or based on the User type definition.
-      // Explicitly pass undefined or null for fields not in this form if addUser needs it.
-      // For this mock, we assume addUser handles missing optional fields gracefully.
       const newUserPayload = {
         ...values,
         // Ensure other non-provided fields are handled as per User type (optional or default in addUser)
         // For example, department and other detailed fields will be undefined here.
         // addUser in lib/user-data.ts should provide defaults for these.
-        // Password will be undefined by default, which is fine for this basic creation.
       };
       // @ts-ignore
       const newUser = await addUser(newUserPayload); 
@@ -118,6 +115,17 @@ export default function AddBasicUserPage() {
                   <FormItem>
                     <FormLabel>Email Corporativo</FormLabel>
                     <FormControl><Input type="email" placeholder="e.g., atorres@ejemplo.com" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contraseña</FormLabel>
+                    <FormControl><Input type="password" placeholder="Introduce la contraseña" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
