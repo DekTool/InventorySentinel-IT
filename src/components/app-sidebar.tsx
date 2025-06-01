@@ -5,7 +5,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, PackageSearch } from 'lucide-react'; 
+import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, PackageSearch, ClipboardCheck } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import {
   SidebarContent,
@@ -99,6 +99,20 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/entregas" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/entregas')}
+                tooltip="Entregas"
+              >
+                <a>
+                  <ClipboardCheck />
+                  <span>Entregas</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
            <SidebarMenuItem>
             <Link href="/scan" passHref legacyBehavior>
               <SidebarMenuButton
@@ -153,4 +167,3 @@ export function AppSidebar() {
     </>
   );
 }
-
