@@ -3,30 +3,43 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Settings as SettingsIcon, Users as UsersIcon, UserCheck, Loader2, UserPlus } from "lucide-react";
+import { Settings as SettingsIcon, Users as UsersIcon, UserCheck, Loader2, UserPlus, Trash2 } from "lucide-react"; // Added Trash2
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { User, UserRole } from '@/types/user';
-import { getAllUsers, updateUser, userRoles } from '@/lib/user-data'; // deleteUser no longer needed here
+import { getAllUsers, updateUser, userRoles, deleteUser } from '@/lib/user-data'; 
 import Link from 'next/link';
-// AlertDialog components are no longer needed here as delete functionality is removed from this page.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingRole, setIsUpdatingRole] = useState<Record<string, boolean>>({});
-  // State related to user deletion (userToDelete, isAlertDialogOpen, isDeletingUser) is removed
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const { toast } = useToast();
 
+  const fetchUsersData = async () => {
+    setIsLoading(true);
+    const usersData = await getAllUsers();
+    setUsers(usersData);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    async function fetchUsersData() {
-      setIsLoading(true);
-      const usersData = await getAllUsers();
-      setUsers(usersData);
-      setIsLoading(false);
-    }
     fetchUsersData();
   }, []);
 
@@ -60,8 +73,53 @@ export default function SettingsPage() {
     }
   };
 
-  // confirmDeleteUser and executeDeleteUser functions are removed from this page.
-  // User deletion will be handled on the user details page.
+  const confirmDeleteUser = (user: User) => {
+    if (user.assignedItems > 0) {
+      toast({
+        title: "No se puede eliminar el usuario",
+        description: `${user.name} tiene ${user.assignedItems} equipo(s) asignado(s). Por favor, reasigna o retira los equipos antes de eliminar al usuario.`,
+        variant: "destructive",
+        duration: 7000,
+      });
+      return;
+    }
+    setUserToDelete(user);
+    setIsAlertDialogOpen(true);
+  };
+
+  const executeDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
+    try {
+      const success = await deleteUser(userToDelete.id);
+      if (success) {
+        toast({
+          title: "Usuario Eliminado",
+          description: `El usuario ${userToDelete.name} ha sido eliminado del sistema.`,
+          variant: "default",
+        });
+        fetchUsersData(); // Refresh the user list
+      } else {
+        toast({
+          title: "Error al Eliminar",
+          description: "No se pudo eliminar el usuario del sistema.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting user from system:", error);
+      toast({
+        title: "Error del Servidor",
+        description: "Ocurrió un error al intentar eliminar el usuario.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingUser(false);
+      setIsAlertDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
 
   return (
     <div className="flex flex-col h-full p-4 md:p-8">
@@ -77,9 +135,9 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5"/> Gestión de Roles de Usuario</CardTitle>
-                <Link href="/users/add" passHref>
+                <Link href="/settings/users/add" passHref> {/* Updated Link */}
                   <Button variant="outline">
-                    <UserPlus className="mr-2 h-4 w-4" /> Añadir Nuevo Usuario
+                    <UserPlus className="mr-2 h-4 w-4" /> Añadir Nuevo Usuario (Básico)
                   </Button>
                 </Link>
               </div>
@@ -102,7 +160,7 @@ export default function SettingsPage() {
                           <TableHead>Email</TableHead>
                           <TableHead>Departamento</TableHead>
                           <TableHead className="w-[200px]">Rol Actual</TableHead>
-                          {/* Acciones column removed */}
+                          <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -121,6 +179,7 @@ export default function SettingsPage() {
                                 <Select
                                   value={user.role}
                                   onValueChange={(newRole) => handleRoleChange(user.id, newRole as UserRole)}
+                                  disabled={isUpdatingRole[user.id]}
                                 >
                                   <SelectTrigger className="h-8">
                                     <SelectValue placeholder="Selecciona un rol" />
@@ -135,7 +194,18 @@ export default function SettingsPage() {
                                 </Select>
                               )}
                             </TableCell>
-                            {/* TableCell for delete button removed */}
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => confirmDeleteUser(user)}
+                                disabled={isDeletingUser && userToDelete?.id === user.id}
+                                title="Eliminar usuario del sistema"
+                              >
+                                {isDeletingUser && userToDelete?.id === user.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4 text-destructive"/>}
+                                <span className="sr-only">Eliminar usuario del sistema</span>
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -145,8 +215,25 @@ export default function SettingsPage() {
              </CardContent>
          </Card>
       </div>
-
-      {/* AlertDialog for delete confirmation is removed from this page */}
+        
+      <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente al usuario <span className="font-semibold">{userToDelete?.name}</span> del sistema. 
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)} disabled={isDeletingUser}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDeleteUser} disabled={isDeletingUser} className="bg-destructive hover:bg-destructive/90">
+              {isDeletingUser ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Sí, eliminar usuario
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
