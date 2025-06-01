@@ -1,9 +1,8 @@
 # INVENTORY SENTINEL IT DOCUMENTAL 
 
-https://9000-idx-studio-1746385500443.cluster-6frnii43o5blcu522sivebzpii.cloudworkstations.dev/?monospaceUid=859957
+##DEMO
+![DEMOSentinelIT](https://github.com/user-attachments/assets/2f463838-8649-4d39-bc96-08488dabfc15)
 
-user: public@github.com
-pass: public123
 
 El proyecto **InventorySentinel-IT** es una aplicación web que permite gestionar y visualizar el inventario para el departamento de IT con diferentes componentes de una interfaz de usuario. Está diseñado para facilitar el tiempo del técnico usando React y TypeScript.
 
