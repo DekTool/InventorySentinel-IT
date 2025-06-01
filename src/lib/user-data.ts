@@ -8,6 +8,7 @@ let mockUsers: User[] = [
   { id: 'USR-003', name: 'Charlie Brown', email: 'usuario@example.com', department: 'Ventas', phone: '555-123-4567', joinDate: '2023-01-10', assignedItems: 0, role: 'Usuario', password: 'usuariopassword' },
   { id: 'USR-004', name: 'Diana Prince', email: 'dprince@example.com', department: 'RRHH', phone: '111-222-3333', joinDate: '2020-05-20', assignedItems: 1, role: 'Usuario', password: 'password123' },
   { id: 'USR-005', name: 'Ethan Hunt', email: 'ehunt@example.com', department: 'IT', phone: '777-888-9999', joinDate: '2019-11-11', assignedItems: 5, role: 'Tecnico', password: 'password123' },
+  { id: 'USR-006', name: 'Admin User', email: 'admin@admin.com', department: 'Administración', phone: '000-000-0000', joinDate: '2024-01-01', assignedItems: 0, role: 'Administrador', password: 'admin' },
 ];
 
 export const userRoles: UserRole[] = ["Administrador", "Tecnico", "Usuario"];
@@ -67,3 +68,4 @@ export async function updateUserAssignedItemsCount(userId: string) {
         console.log(`Updated assigned items count for user ${userId} to ${items.length}`);
     }
 }
+
