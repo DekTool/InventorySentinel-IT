@@ -5,7 +5,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, ClipboardCheck, Smartphone } from 'lucide-react'; 
+import { Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, ClipboardCheck, Smartphone, LogOut, UserCircle } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import {
   SidebarContent,
@@ -15,15 +15,26 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarTrigger,
+  SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button'; 
-import { MOCKED_CURRENT_USER_ROLE } from '@/lib/user-data'; // Import mock role
+import { useAuth } from '@/hooks/useAuth'; // Import useAuth
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
+const getInitials = (name: string) => {
+  if (!name) return '?';
+  const names = name.split(' ');
+  if (names.length === 1) return names[0]?.[0]?.toUpperCase() ?? '?';
+  if (names.length > 1) return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+  return '?';
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar(); 
   const [hasMounted, setHasMounted] = useState(false);
+  const { currentUser, logout, isLoadingAuth } = useAuth(); // Use the auth hook
 
   useEffect(() => {
     setHasMounted(true);
@@ -34,12 +45,21 @@ export function AppSidebar() {
     return pathname.startsWith(path);
   };
 
-  // Define which items are visible for each role
-  // This is a simplified approach for demonstration. A real app would use a proper auth context/service.
-  const isUserRole = MOCKED_CURRENT_USER_ROLE === 'Usuario';
-  // const isTecnicoRole = MOCKED_CURRENT_USER_ROLE === 'Tecnico';
-  // const isAdminRole = MOCKED_CURRENT_USER_ROLE === 'Administrador';
-  // For now, Tecnico and Administrador see everything.
+  const userRole = currentUser?.role;
+  const isUserRoleUser = userRole === 'Usuario';
+  
+  if (isLoadingAuth && !currentUser) { // Don't render sidebar if auth is loading and no user (likely redirecting to login)
+    return null;
+  }
+  
+  if (!currentUser && pathname !== '/login') { // If not logged in and not on login page, sidebar shouldn't show
+     return null;
+  }
+  
+  if (pathname === '/login') { // Do not render sidebar on the login page
+    return null;
+  }
+
 
   return (
     <>
@@ -48,16 +68,25 @@ export function AppSidebar() {
            <svg 
              xmlns="http://www.w3.org/2000/svg" 
              viewBox="0 0 80 60" 
-             fill="#ff7f00" 
+             fill="hsl(var(--primary))" 
              className="w-6 h-6">
              <path d="M0,0 L18,0 L39,58 L40,60 L41,58 L62,0 L80,0 L40,60 Z" />
            </svg>
           {hasMounted && state === 'expanded' && <span className="font-semibold text-lg">INVENTARIT</span>}
         </div>
+        {hasMounted && state === 'expanded' && currentUser && (
+          <div className="p-2 text-center">
+            <Avatar className="mx-auto mb-1 h-10 w-10">
+              <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+            </Avatar>
+            <p className="text-sm font-medium truncate">{currentUser.name}</p>
+            <p className="text-xs text-muted-foreground capitalize">{currentUser.role}</p>
+          </div>
+        )}
+         {hasMounted && state === 'expanded' && <SidebarSeparator />}
       </SidebarHeader>
       <SidebarContent className="flex-1 overflow-y-auto">
         <SidebarMenu>
-          {/* Always visible */}
           <SidebarMenuItem>
             <Link href="/" passHref legacyBehavior>
               <SidebarMenuButton
@@ -73,7 +102,6 @@ export function AppSidebar() {
             </Link>
           </SidebarMenuItem>
 
-          {/* Inventario - visible for all for now, Usuario will see filtered data */}
           <SidebarMenuItem>
             <Link href="/inventory" passHref legacyBehavior>
               <SidebarMenuButton
@@ -89,8 +117,7 @@ export function AppSidebar() {
             </Link>
           </SidebarMenuItem>
 
-          {/* Licencias - Hidden for 'Usuario' */}
-          {!isUserRole && (
+          {!isUserRoleUser && (
             <SidebarMenuItem>
               <Link href="/licencias" passHref legacyBehavior>
                 <SidebarMenuButton
@@ -107,7 +134,6 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
 
-          {/* Pedidos - visible for all */}
           <SidebarMenuItem>
             <Link href="/pedidos" passHref legacyBehavior>
               <SidebarMenuButton
@@ -123,7 +149,6 @@ export function AppSidebar() {
             </Link>
           </SidebarMenuItem>
 
-          {/* Entregas - visible for all */}
           <SidebarMenuItem>
             <Link href="/entregas" passHref legacyBehavior>
               <SidebarMenuButton
@@ -139,8 +164,7 @@ export function AppSidebar() {
             </Link>
           </SidebarMenuItem>
           
-          {/* Líneas Móviles - Hidden for 'Usuario' */}
-          {!isUserRole && (
+          {!isUserRoleUser && (
             <SidebarMenuItem>
               <Link href="/mobile-lines" passHref legacyBehavior>
                 <SidebarMenuButton
@@ -157,7 +181,6 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
 
-          {/* Escanear Código - visible for all */}
            <SidebarMenuItem>
             <Link href="/scan" passHref legacyBehavior>
               <SidebarMenuButton
@@ -173,8 +196,7 @@ export function AppSidebar() {
             </Link>
           </SidebarMenuItem>
 
-          {/* Usuarios - Hidden for 'Usuario' */}
-          {!isUserRole && (
+          {!isUserRoleUser && (
             <SidebarMenuItem>
               <Link href="/users" passHref legacyBehavior>
                 <SidebarMenuButton
@@ -194,8 +216,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {/* Configuración - Hidden for 'Usuario' */}
-          {!isUserRole && (
+          {!isUserRoleUser && (
             <SidebarMenuItem>
               <Link href="/settings" passHref legacyBehavior>
                 <SidebarMenuButton
@@ -209,6 +230,18 @@ export function AppSidebar() {
                   </a>
                 </SidebarMenuButton>
               </Link>
+            </SidebarMenuItem>
+          )}
+          {currentUser && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={logout}
+                tooltip="Cerrar Sesión"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut />
+                <span>Cerrar Sesión</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           <SidebarMenuItem className="md:hidden">

@@ -9,32 +9,39 @@ import Link from 'next/link';
 import { useEffect, useState, useMemo } from "react";
 import type { InventoryItem } from "@/types/inventory";
 import { getAllInventoryItems } from "@/lib/inventory-data";
-import { MOCKED_CURRENT_USER_ROLE } from "@/lib/user-data"; // Import mock role
+import { useAuth } from "@/hooks/useAuth"; // Import useAuth
 
 export default function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true); // Renamed for clarity
   const [searchTerm, setSearchTerm] = useState('');
+  const { currentUser, isLoadingAuth } = useAuth(); // Get currentUser and loading state
+
+  const userRole = currentUser?.role;
 
   useEffect(() => {
+    if (isLoadingAuth) return; // Don't fetch data until auth state is resolved
+
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoadingData(true);
       let items = await getAllInventoryItems();
-      // If the mocked role is 'Usuario', filter for "En Stock" items only
-      if (MOCKED_CURRENT_USER_ROLE === 'Usuario') {
+      
+      // Filter for "En Stock" items only if the role is 'Usuario'
+      // This logic is now conditional on userRole being defined
+      if (userRole === 'Usuario') {
         items = items.filter(item => item.status === 'En Stock');
       }
       setInventoryItems(items);
-      setIsLoading(false);
+      setIsLoadingData(false);
     };
     fetchData();
-  }, []);
+  }, [isLoadingAuth, userRole]); // Depend on auth loading state and userRole
 
   const filteredItems = useMemo(() => {
     let itemsToFilter = inventoryItems;
-    // If the role is 'Usuario', ensure we are starting from the already-filtered "En Stock" items
+    
     // This check is mostly redundant if useEffect already filters, but good for clarity.
-    if (MOCKED_CURRENT_USER_ROLE === 'Usuario') {
+    if (userRole === 'Usuario') {
         itemsToFilter = inventoryItems.filter(item => item.status === 'En Stock');
     }
 
@@ -49,16 +56,25 @@ export default function InventoryPage() {
       item.barcode.toLowerCase().includes(lowerSearchTerm) ||
       (item.assignedTo && item.assignedTo.toLowerCase().includes(lowerSearchTerm)) ||
       item.type.toLowerCase().includes(lowerSearchTerm) ||
-      item.status.toLowerCase().includes(lowerSearchTerm) // Allow searching by status for all roles
+      item.status.toLowerCase().includes(lowerSearchTerm) 
     );
-  }, [inventoryItems, searchTerm]);
+  }, [inventoryItems, searchTerm, userRole]);
 
+
+ if (isLoadingAuth || isLoadingData) { // Show loader if either auth or data is loading
+    return (
+      <div className="flex justify-center items-center flex-1 p-4 md:p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Cargando inventario...</span>
+      </div>
+    );
+  }
 
  return (
     <div className="flex flex-col h-full p-4 md:p-8">
       <header className="mb-6 flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-3xl font-bold tracking-tight text-primary">Gestión de Inventario</h1>
-        {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && ( // Hide "Add New" button for 'Usuario' role
+        {userRole !== 'Usuario' && ( 
           <Link href="/inventory/add" passHref>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Equipo
@@ -69,7 +85,7 @@ export default function InventoryPage() {
 
       <div className="mb-4 flex items-center gap-2">
         <Input
-          placeholder={MOCKED_CURRENT_USER_ROLE === 'Usuario' ? "Buscar en equipos en stock..." : "Buscar por Etiqueta, Nombre, Código de Barras..."}
+          placeholder={userRole === 'Usuario' ? "Buscar en equipos en stock..." : "Buscar por Etiqueta, Nombre, Código de Barras..."}
           className="max-w-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -80,12 +96,7 @@ export default function InventoryPage() {
          </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center flex-1">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2">Cargando inventario...</span>
-        </div>
-      ) : (
+      
         <div className="flex-1 overflow-auto rounded-md border">
           <Table>
             <TableHeader>
@@ -94,7 +105,7 @@ export default function InventoryPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Estado</TableHead>
-                {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && <TableHead>Asignado A</TableHead>}
+                {userRole !== 'Usuario' && <TableHead>Asignado A</TableHead>}
                 <TableHead>Código Barras</TableHead>
                 <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
@@ -116,7 +127,7 @@ export default function InventoryPage() {
                       {item.status}
                     </span>
                   </TableCell>
-                  {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && <TableCell>{item.assignedTo || 'N/A'}</TableCell>}
+                  {userRole !== 'Usuario' && <TableCell>{item.assignedTo || 'N/A'}</TableCell>}
                   <TableCell>{item.barcode}</TableCell>
                   <TableCell>
                     <Link href={`/inventory/${item.id}`} passHref>
@@ -125,10 +136,10 @@ export default function InventoryPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredItems.length === 0 && !isLoading && (
+              {filteredItems.length === 0 && !isLoadingData && (
                 <TableRow>
-                  <TableCell colSpan={MOCKED_CURRENT_USER_ROLE !== 'Usuario' ? 7 : 6} className="h-24 text-center">
-                    {MOCKED_CURRENT_USER_ROLE === 'Usuario' 
+                  <TableCell colSpan={userRole !== 'Usuario' ? 7 : 6} className="h-24 text-center">
+                    {userRole === 'Usuario' 
                       ? "No se encontraron equipos en stock que coincidan con la búsqueda o no hay equipos en stock."
                       : "No se encontraron elementos en el inventario que coincidan con la búsqueda o no hay equipos registrados."
                     }
@@ -138,7 +149,7 @@ export default function InventoryPage() {
             </TableBody>
           </Table>
         </div>
-      )}
+      
     </div>
   );
 }
