@@ -5,7 +5,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, PackageSearch, ClipboardCheck } from 'lucide-react'; 
+import { Package, Users, Settings, LayoutDashboard, ScanBarcode, KeyRound, ShoppingCart, PackageSearch, ClipboardCheck, Smartphone } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import {
   SidebarContent,
@@ -109,6 +109,20 @@ export function AppSidebar() {
                 <a>
                   <ClipboardCheck />
                   <span>Entregas</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/mobile-lines" passHref legacyBehavior>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/mobile-lines')}
+                tooltip="Líneas Móviles"
+              >
+                <a>
+                  <Smartphone />
+                  <span>Líneas Móviles</span>
                 </a>
               </SidebarMenuButton>
             </Link>

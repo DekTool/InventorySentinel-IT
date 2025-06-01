@@ -249,7 +249,6 @@ export default function UserDetailsPage() {
                      <div className="flex flex-col items-center justify-center p-6 border border-dashed rounded-md text-center">
                         <Package className="w-10 h-10 text-muted-foreground mb-2" />
                         <p className="text-muted-foreground">Este usuario no tiene equipos asignados actualmente.</p>
-                         <Button variant="link" className="mt-2" disabled>Asignar Nuevo Equipo (No Implementado)</Button>
                     </div>
                 )}
            </CardContent>

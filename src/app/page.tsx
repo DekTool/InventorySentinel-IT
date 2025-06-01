@@ -1,11 +1,12 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Package, Users, ScanBarcode, AlertCircle, KeyRound, ShoppingCart, ClipboardCheck } from "lucide-react";
+import { Package, Users, ScanBarcode, AlertCircle, KeyRound, ShoppingCart, ClipboardCheck, Smartphone } from "lucide-react";
 import { getAllInventoryItems } from "@/lib/inventory-data";
 import { getAllLicenses } from "@/lib/license-data";
 import { getAllUsers } from "@/lib/user-data"; 
 import { getAllOrders } from "@/lib/order-data";
-import { getAllEntregas } from "@/lib/entrega-data"; // Import for deliveries
+import { getAllEntregas } from "@/lib/entrega-data";
+import { getAllMobileLines } from "@/lib/mobile-line-data"; // Import for mobile lines
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default async function Home() {
@@ -14,7 +15,8 @@ export default async function Home() {
   const licenses = await getAllLicenses();
   const users = await getAllUsers();
   const orders = await getAllOrders();
-  const entregas = await getAllEntregas(); // Fetch deliveries
+  const entregas = await getAllEntregas();
+  const mobileLines = await getAllMobileLines(); // Fetch mobile lines
 
   // Calculate counts
   const totalInventoryCount = inventoryItems.length;
@@ -35,6 +37,10 @@ export default async function Home() {
 
   const totalEntregasCount = entregas.length;
   const pendingEntregasCount = entregas.filter(entrega => entrega.status === 'Pendiente' || entrega.status === 'En Proceso').length;
+
+  const totalMobileLinesCount = mobileLines.length;
+  const activeMobileLinesCount = mobileLines.filter(line => line.status === 'Activa').length;
+  const assignedMobileLinesCount = mobileLines.filter(line => line.status === 'Activa' && line.assignedToUserId).length;
 
 
   // Calculate expiring licenses (within next 30 days)
@@ -89,6 +95,19 @@ export default async function Home() {
             </p>
           </CardContent>
         </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Líneas Móviles Totales</CardTitle>
+            <Smartphone className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalMobileLinesCount}</div>
+            <p className="text-xs text-muted-foreground">
+              ({activeMobileLinesCount} activas, {assignedMobileLinesCount} asignadas)
+            </p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -130,7 +149,7 @@ export default async function Home() {
         </Card>
 
 
-        <Card className="md:col-span-2 lg:col-span-3 xl:col-span-3"> {/* Adjusted span */}
+        <Card className="md:col-span-2 lg:col-span-3 xl:col-span-2"> {/* Adjusted span to make space for new cards */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-destructive">Alertas Importantes</CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
@@ -176,6 +195,12 @@ export default async function Home() {
              )}
              <p className="text-xs text-muted-foreground">
                 {totalEntregasCount > 0 ? `Entregas: ${totalEntregasCount} registradas, ${pendingEntregasCount} pendientes.` : "Registra nuevas entregas para hacer seguimiento del material entregado."}
+             </p>
+             {totalMobileLinesCount === 0 && (
+                <div className="text-lg font-bold mt-2">Líneas Móviles: No hay Líneas Registradas</div>
+             )}
+             <p className="text-xs text-muted-foreground">
+                {totalMobileLinesCount > 0 ? `Líneas Móviles: ${totalMobileLinesCount} totales, ${activeMobileLinesCount} activas.` : "Registra nuevas líneas móviles para su gestión."}
              </p>
 
           </CardContent>
