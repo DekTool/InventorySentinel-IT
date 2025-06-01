@@ -46,7 +46,9 @@ const formSchema = z.object({
   phone: z.string().optional().nullable(),
   joinDate: z.string().optional().nullable(),
   role: z.enum(userRoles as [UserRole, ...UserRole[]]),
-  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }).optional().or(z.literal('')),
+  // Password field is now optional and not present in the form for adding
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }).optional().or(z.literal('')).optional(),
+
 
   // Información General de Cuenta y Empleado
   tipoCuenta: z.string().optional().nullable(),
@@ -196,7 +198,7 @@ export default function AddUserPage() {
       phone: "",
       joinDate: "",
       role: "Usuario",
-      password: "",
+      // password: "", // Password field removed from defaultValues as it's not in the form
       // Default values for new fields
       tipoCuenta: "",
       estadoCuenta: "Activa",
@@ -296,6 +298,7 @@ export default function AddUserPage() {
     
     const transformedValues = {
         ...values,
+        password: values.password || undefined, // Ensure password is undefined if not provided
         cuentaDAcreada: values.cuentaDAcreada === "true",
         fichaDArellena: values.fichaDArellena === "true",
         licenciaO365asignada: values.licenciaO365asignada === "true",
@@ -386,7 +389,7 @@ export default function AddUserPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Nombre y Apellidos</FormLabel><FormControl><Input placeholder="e.g., Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>)} />
                   <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email Corporativo</FormLabel><FormControl><Input type="email" placeholder="e.g., jperez@ejemplo.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  <FormField control={form.control} name="password" render={({ field }) => (<FormItem><FormLabel>Contraseña</FormLabel><FormControl><Input type="password" placeholder="Introduce una contraseña" {...field} /></FormControl><FormDescription>Mínimo 8 caracteres.</FormDescription><FormMessage /></FormItem>)} />
+                  {/* Password field removed from here */}
                   <FormField control={form.control} name="department" render={({ field }) => (<FormItem><FormLabel>Departamento</FormLabel><FormControl><Input placeholder="e.g., Ingeniería" {...field} /></FormControl><FormMessage /></FormItem>)} />
                   <FormField control={form.control} name="role" render={({ field }) => (<FormItem><FormLabel>Rol</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecciona un rol" /></SelectTrigger></FormControl><SelectContent>{userRoles.map(role => (<SelectItem key={role} value={role}>{role}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
                   <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Número de Teléfono</FormLabel><FormControl><Input type="tel" placeholder="e.g., 123-456-7890" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
@@ -553,3 +556,6 @@ export default function AddUserPage() {
     </div>
   );
 }
+
+
+    
