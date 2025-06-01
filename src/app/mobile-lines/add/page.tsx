@@ -34,9 +34,7 @@ import { getAllUsers } from '@/lib/user-data';
 import type { User } from '@/types/user';
 
 const mobileLineStatuses: MobileLineStatus[] = ["Activa", "Suspendida", "Cancelada", "Sin Asignar"];
-// Consider making carriers a predefined list if preferred
-// const carriers: string[] = ["Movistar", "Vodafone", "Orange", "MásMóvil", "Yoigo", "Otro"];
-
+const UNASSIGNED_USER_VALUE = "__UNASSIGNED__";
 
 const formSchema = z.object({
   phoneNumber: z.string().min(9, "El número de teléfono debe tener al menos 9 dígitos.").regex(/^\+?[0-9\s-()]*$/, "Formato de número inválido."),
@@ -76,7 +74,7 @@ export default function AddMobileLinePage() {
       simCardNumber: "",
       pukCode: "",
       activationDate: "",
-      assignedToUserId: "",
+      assignedToUserId: UNASSIGNED_USER_VALUE, // Default to unassigned using the special value
       notes: "",
     },
   });
@@ -85,8 +83,10 @@ export default function AddMobileLinePage() {
     setIsSubmitting(true);
     
     let assignedToUserName: string | null = null;
-    if (values.assignedToUserId) {
-      const selectedUser = users.find(u => u.id === values.assignedToUserId);
+    const finalAssignedToUserId = values.assignedToUserId === UNASSIGNED_USER_VALUE ? null : values.assignedToUserId;
+
+    if (finalAssignedToUserId) {
+      const selectedUser = users.find(u => u.id === finalAssignedToUserId);
       if (selectedUser) {
         assignedToUserName = selectedUser.name;
       } else {
@@ -98,7 +98,8 @@ export default function AddMobileLinePage() {
 
     const lineDataForApi: Omit<MobileLine, 'id'> = {
       ...values,
-      assignedToUserName, // Add the name
+      assignedToUserId: finalAssignedToUserId,
+      assignedToUserName,
     };
     console.log("Mobile Line Form Submitted:", lineDataForApi);
 
@@ -225,10 +226,10 @@ export default function AddMobileLinePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Asignar a Usuario (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? UNASSIGNED_USER_VALUE}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un usuario" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sin Asignar</SelectItem>
+                        <SelectItem value={UNASSIGNED_USER_VALUE}>Sin Asignar</SelectItem>
                         {users.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.email})</SelectItem>)}
                       </SelectContent>
                     </Select>

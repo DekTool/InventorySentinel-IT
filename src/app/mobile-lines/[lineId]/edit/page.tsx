@@ -34,6 +34,7 @@ import { getAllUsers } from '@/lib/user-data';
 import type { User } from '@/types/user';
 
 const mobileLineStatuses: MobileLineStatus[] = ["Activa", "Suspendida", "Cancelada", "Sin Asignar"];
+const UNASSIGNED_USER_VALUE = "__UNASSIGNED__";
 
 const formSchema = z.object({
   phoneNumber: z.string().min(9, "El número de teléfono debe tener al menos 9 dígitos.").regex(/^\+?[0-9\s-()]*$/, "Formato de número inválido."),
@@ -85,7 +86,7 @@ export default function EditMobileLinePage() {
         form.reset({
             ...data,
             activationDate: data.activationDate ? new Date(data.activationDate).toISOString().split('T')[0] : "",
-            assignedToUserId: data.assignedToUserId ?? "", // Ensure "" for unassigned for Select
+            assignedToUserId: data.assignedToUserId ?? UNASSIGNED_USER_VALUE, 
         });
     } else {
         toast({ title: "Error", description: "Línea móvil no encontrada.", variant: "destructive" });
@@ -103,8 +104,10 @@ export default function EditMobileLinePage() {
     setIsSubmitting(true);
     
     let assignedToUserName: string | null = null;
-    if (values.assignedToUserId && values.assignedToUserId !== "") {
-      const selectedUser = users.find(u => u.id === values.assignedToUserId);
+    const finalAssignedToUserId = values.assignedToUserId === UNASSIGNED_USER_VALUE ? null : values.assignedToUserId;
+
+    if (finalAssignedToUserId) {
+      const selectedUser = users.find(u => u.id === finalAssignedToUserId);
       if (selectedUser) {
         assignedToUserName = selectedUser.name;
       } else {
@@ -116,7 +119,7 @@ export default function EditMobileLinePage() {
     
     const lineDataForApi: Partial<Omit<MobileLine, 'id'>> = {
       ...values,
-      assignedToUserId: values.assignedToUserId === "" ? null : values.assignedToUserId, // Convert "" back to null
+      assignedToUserId: finalAssignedToUserId,
       assignedToUserName,
     };
     console.log("Form Submitted for Update:", lineDataForApi);
@@ -274,10 +277,10 @@ export default function EditMobileLinePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Asignar a Usuario (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <Select onValueChange={field.onChange} value={field.value ?? UNASSIGNED_USER_VALUE}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un usuario" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sin Asignar</SelectItem>
+                        <SelectItem value={UNASSIGNED_USER_VALUE}>Sin Asignar</SelectItem>
                         {users.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.email})</SelectItem>)}
                       </SelectContent>
                     </Select>
