@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, UserPlus } from 'lucide-react';
 import { addUser } from '@/lib/user-data';
 import type { UserRole } from '@/types/user';
-import { userRoles } from '@/lib/user-data';
+// userRoles is no longer needed here as Role field is removed
 import { Separator } from '@/components/ui/separator';
 
 const booleanOptions = [
@@ -42,11 +42,10 @@ const formSchema = z.object({
   // Core fields
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, introduce un email válido." }),
-  department: z.string().min(2, { message: "El departamento debe tener al menos 2 caracteres." }),
+  // department: z.string().min(2, { message: "El departamento debe tener al menos 2 caracteres." }), // Department will be defaulted
   phone: z.string().optional().nullable(),
   joinDate: z.string().optional().nullable(),
-  role: z.enum(userRoles as [UserRole, ...UserRole[]]),
-  // Password field is now optional and not present in the form for adding
+  // role: z.enum(userRoles as [UserRole, ...UserRole[]]), // Role field removed
   password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }).optional().or(z.literal('')).optional(),
 
 
@@ -194,12 +193,11 @@ export default function AddUserPage() {
     defaultValues: {
       name: "",
       email: "",
-      department: "",
+      // department: "", // Department will be defaulted
       phone: "",
       joinDate: "",
-      role: "Usuario",
-      // password: "", // Password field removed from defaultValues as it's not in the form
-      // Default values for new fields
+      // role: "Usuario", // Role will be defaulted
+      password: "", 
       tipoCuenta: "",
       estadoCuenta: "Activa",
       empresa: "",
@@ -298,7 +296,9 @@ export default function AddUserPage() {
     
     const transformedValues = {
         ...values,
-        password: values.password || undefined, // Ensure password is undefined if not provided
+        password: values.password || undefined, 
+        role: "Usuario" as UserRole, // Default role
+        department: "General", // Default department
         cuentaDAcreada: values.cuentaDAcreada === "true",
         fichaDArellena: values.fichaDArellena === "true",
         licenciaO365asignada: values.licenciaO365asignada === "true",
@@ -356,7 +356,7 @@ export default function AddUserPage() {
       const newUser = await addUser(transformedValues);
       toast({
         title: "Usuario Añadido Correctamente",
-        description: `El usuario ${newUser.name} (ID: ${newUser.id}) ha sido creado.`,
+        description: `El usuario ${newUser.name} (ID: ${newUser.id}) ha sido creado con el rol por defecto 'Usuario' y departamento 'General'.`,
         variant: "default",
       });
       router.push('/users');
@@ -377,7 +377,7 @@ export default function AddUserPage() {
       <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="text-2xl text-primary flex items-center gap-2">
-            <UserPlus className="w-6 h-6"/> Añadir Nuevo Usuario
+            <UserPlus className="w-6 h-6"/> Añadir Nuevo Usuario (Detallado)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -389,9 +389,9 @@ export default function AddUserPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Nombre y Apellidos</FormLabel><FormControl><Input placeholder="e.g., Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>)} />
                   <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email Corporativo</FormLabel><FormControl><Input type="email" placeholder="e.g., jperez@ejemplo.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  {/* Password field removed from here */}
-                  <FormField control={form.control} name="department" render={({ field }) => (<FormItem><FormLabel>Departamento</FormLabel><FormControl><Input placeholder="e.g., Ingeniería" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  <FormField control={form.control} name="role" render={({ field }) => (<FormItem><FormLabel>Rol</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecciona un rol" /></SelectTrigger></FormControl><SelectContent>{userRoles.map(role => (<SelectItem key={role} value={role}>{role}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+                  <FormField control={form.control} name="password" render={({ field }) => (<FormItem><FormLabel>Contraseña</FormLabel><FormControl><Input type="password" placeholder="Mínimo 8 caracteres" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  {/* Department field removed - will default to "General" */}
+                  {/* Role field removed - will default to "Usuario" */}
                   <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Número de Teléfono</FormLabel><FormControl><Input type="tel" placeholder="e.g., 123-456-7890" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                   <FormField control={form.control} name="joinDate" render={({ field }) => (<FormItem><FormLabel>Fecha de Incorporación/Alta</FormLabel><FormControl><Input type="date" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                  </div>
@@ -556,6 +556,3 @@ export default function AddUserPage() {
     </div>
   );
 }
-
-
-    

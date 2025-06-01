@@ -15,21 +15,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-// Select components are no longer needed for role here
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Loader2, UserPlus, ArrowLeft } from 'lucide-react';
 import { addUser } from '@/lib/user-data';
 import type { UserRole } from '@/types/user';
-// userRoles is no longer needed here
+import { userRoles } from '@/lib/user-data'; // Import userRoles
 import Link from 'next/link';
 
 const basicFormSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, introduce un email válido." }),
   password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
-  // Role field removed from schema
+  role: z.enum(userRoles as [UserRole, ...UserRole[]], {
+    errorMap: () => ({ message: "Por favor, selecciona un rol válido." })
+  }),
 });
 
 type BasicUserFormData = z.infer<typeof basicFormSchema>;
@@ -45,7 +53,7 @@ export default function AddBasicUserPage() {
       name: "",
       email: "",
       password: "",
-      // Role field removed from default values
+      role: "Usuario", // Default role
     },
   });
 
@@ -55,11 +63,9 @@ export default function AddBasicUserPage() {
 
     try {
       const newUserPayload = {
-        ...values, // name, email, password
-        role: "Usuario" as UserRole, // Assign default role
+        ...values, // name, email, password, role
         department: "General", // Assign default department
         // Ensure other non-provided fields are handled as per User type (optional or default in addUser)
-        // For example, other detailed fields will be undefined here and handled by addUser.
       };
       // @ts-ignore - This might be needed if newUserPayload doesn't perfectly match User type, 
       // but addUser should handle defaults for many optional fields.
@@ -126,7 +132,30 @@ export default function AddBasicUserPage() {
                   </FormItem>
                 )}
               />
-              {/* Role FormField removed */}
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rol</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userRoles.map(roleOption => (
+                          <SelectItem key={roleOption} value={roleOption}>
+                            {roleOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </form>
           </Form>
         </CardContent>
