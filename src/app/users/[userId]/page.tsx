@@ -105,24 +105,34 @@ export default function UserDetailsPage() {
 
     if (confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.name}" (ID: ${user.id})? Esta acción no se puede deshacer.`)) {
         setIsDeleting(true);
-        const success = await deleteUser(user.id);
-        if (success) {
+        try {
+            const success = await deleteUser(user.id);
+            if (success) {
+                toast({
+                    title: "Usuario Eliminado",
+                    description: `El usuario ${user.name} ha sido eliminado.`,
+                    variant: "default"
+                });
+                router.push('/users');
+            } else {
+                 toast({
+                    title: "Error al Eliminar",
+                    description: "No se pudo eliminar el usuario.",
+                    variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting user:", error);
             toast({
-                title: "Usuario Eliminado",
-                description: `El usuario ${user.name} ha sido eliminado.`,
-                variant: "default"
-            });
-            router.push('/users');
-        } else {
-             toast({
-                title: "Error al Eliminar",
-                description: "No se pudo eliminar el usuario.",
+                title: "Error del Servidor",
+                description: "Ocurrió un error al intentar eliminar el usuario.",
                 variant: "destructive"
             });
+        } finally {
+            setIsDeleting(false);
         }
-        setIsDeleting(false);
     }
-  }, [user, router, toast, assignedItems.length]);
+  }, [user, router, toast, assignedItems]);
 
 
   if (isLoading) {
@@ -163,7 +173,7 @@ export default function UserDetailsPage() {
     <div className="flex flex-col h-full p-4 md:p-8">
        <div className="mb-6 flex justify-between items-center flex-wrap gap-2">
          <Link href="/users" passHref>
-             <Button variant="outline" size="sm">
+             <Button variant="outline" size="sm" disabled={isDeleting}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Usuarios
              </Button>
         </Link>
@@ -179,7 +189,7 @@ export default function UserDetailsPage() {
             </Button>
              <Button variant="destructive" onClick={handleDeleteUser} disabled={isDeleting}>
                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
-                  Eliminar Usuario
+                  {isDeleting ? "Eliminando..." : "Eliminar Usuario"}
              </Button>
          </div>
        </div>
@@ -188,7 +198,7 @@ export default function UserDetailsPage() {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 mb-4">
-               <UserIcon className="h-10 w-10 text-muted-foreground" />
+               <UserIcon className="h-10 w-10 text-muted-foreground" /> {/* Reemplazado por UserIcon para consistencia */}
             </Avatar>
             <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
              <CardDescription>{user.id}</CardDescription>
@@ -283,3 +293,4 @@ export default function UserDetailsPage() {
     </div>
   );
 }
+
