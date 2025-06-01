@@ -1,6 +1,7 @@
 # INVENTORY SENTINEL IT DOCUMENTAL 
 
 https://9000-idx-studio-1746385500443.cluster-6frnii43o5blcu522sivebzpii.cloudworkstations.dev/?monospaceUid=859957
+
 user: public@github.com
 pass: public123
 
@@ -12,7 +13,7 @@ Para instalar y ejecutar el proyecto, sigue estos pasos:
 
 *Clona el repositorio:
  bash
-   git clone https://github.com/tu_usuario/InventorySentinel-IT.git
+   git clone https://github.com/DekTool/InventorySentinel-IT.git
    cd InventorySentinel-IT
    npm install
    npm start
