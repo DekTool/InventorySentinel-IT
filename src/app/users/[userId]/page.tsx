@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer, User as UserIcon, ShieldCheck, CalendarDays } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer, User as UserIcon, ShieldCheck, CalendarDays, Briefcase, MapPin, Globe, LogOutIcon, Server, Key, SmartphoneIcon, Computer, Headphones, Mouse, MonitorIcon, PrinterIcon, Wifi, Cable, Info } from "lucide-react";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from "react";
@@ -27,6 +27,20 @@ const getInitials = (name: string) => {
 }
 
 type FormType = 'entrega' | 'devolucion' | 'entrega-devolucion';
+
+// Helper component to display a detail item
+const DetailItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.ElementType, fullWidth?: boolean }> = ({ label, value, icon: Icon, fullWidth }) => (
+  <div className={`flex flex-col ${fullWidth ? 'md:col-span-2 lg:col-span-3' : ''}`}>
+    <span className="text-xs text-muted-foreground flex items-center">
+      {Icon && <Icon className="w-3 h-3 mr-1" />}
+      {label}
+    </span>
+    <span className="text-sm font-medium break-words">
+      {value === null || value === undefined || value === '' ? 'N/A' : typeof value === 'boolean' ? (value ? 'Sí' : 'No') : String(value)}
+    </span>
+  </div>
+);
+
 
 export default function UserDetailsPage() {
   const params = useParams();
@@ -170,8 +184,8 @@ export default function UserDetailsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 md:p-8">
-       <div className="mb-6 flex justify-between items-center flex-wrap gap-2">
+    <div className="flex flex-col h-full p-4 md:p-8 space-y-6">
+       <div className="flex justify-between items-center flex-wrap gap-2">
          <Link href="/users" passHref>
              <Button variant="outline" size="sm" disabled={isDeleting}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Usuarios
@@ -194,46 +208,49 @@ export default function UserDetailsPage() {
          </div>
        </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-1">
-          <CardHeader className="flex flex-col items-center text-center">
-            <Avatar className="h-20 w-20 mb-4">
-               <UserIcon className="h-10 w-10 text-muted-foreground" /> {/* Reemplazado por UserIcon para consistencia */}
-            </Avatar>
-            <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
-             <CardDescription>{user.id}</CardDescription>
-             <Badge variant={getRoleVariant(user.role)} className="capitalize mt-1">{user.role}</Badge>
+        {/* User Info Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                   <UserIcon className="h-10 w-10 text-muted-foreground m-auto" />
+                </Avatar>
+                <div>
+                    <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
+                    <CardDescription>{user.id}</CardDescription>
+                    <Badge variant={getRoleVariant(user.role)} className="capitalize mt-1">{user.role}</Badge>
+                </div>
+            </div>
+            <Link href={`/users/${userId}/edit`} passHref>
+                <Button variant="outline" size="icon" disabled={isDeleting}>
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Editar Usuario</span>
+                </Button>
+            </Link>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <Separator />
-             <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-muted-foreground"/>
-                <span>{user.email}</span>
-             </div>
-             <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-muted-foreground"/>
-                <span>{user.department}</span>
-             </div>
-             <div className="flex items-center gap-2">
-                 <Phone className="w-4 h-4 text-muted-foreground"/>
-                <span>{user.phone || 'N/A'}</span>
-             </div>
-             <div className="flex items-center gap-2">
-                 <CalendarDays className="w-4 h-4 text-muted-foreground"/>
-                 <span>Incorporación: {user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'N/A'}</span>
-             </div>
-             <Separator />
+            <Separator/>
+            <h3 className="text-md font-semibold text-foreground pt-2">Información Principal</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+                 <DetailItem label="Email" value={user.email} icon={Mail}/>
+                 <DetailItem label="Departamento" value={user.department} icon={Building}/>
+                 <DetailItem label="Teléfono" value={user.phone} icon={Phone}/>
+                 <DetailItem label="Fecha Incorporación" value={user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'N/A'} icon={CalendarDays}/>
+                 <DetailItem label="Tipo de Cuenta" value={user.tipoCuenta} icon={UserIcon}/>
+                 <DetailItem label="Estado de Cuenta" value={user.estadoCuenta} icon={ShieldCheck}/>
+                 <DetailItem label="Empresa" value={user.empresa} icon={Briefcase}/>
+                 <DetailItem label="Ubicación" value={user.ubicacion} icon={MapPin}/>
+                 <DetailItem label="País" value={user.pais} icon={Globe}/>
+                 <DetailItem label="Fecha Salida/Baja" value={user.fechaSalidaBaja ? new Date(user.fechaSalidaBaja).toLocaleDateString() : 'N/A'} icon={LogOutIcon}/>
+                 <DetailItem label="Puesto de Trabajo" value={user.puestoTrabajo} icon={Briefcase}/>
+                 <DetailItem label="Responsable (Manager)" value={user.responsableManager} icon={UsersIcon}/>
+                 <DetailItem label="Entorno Corporativo" value={user.entornoCorporativo} icon={Server}/>
+            </div>
           </CardContent>
-           <CardFooter>
-              <Link href={`/users/${userId}/edit`} passHref className="w-full">
-                <Button variant="outline" className="w-full" disabled={isDeleting}>
-                  <Edit className="mr-2 h-4 w-4" /> Editar Usuario
-                </Button>
-              </Link>
-           </CardFooter>
         </Card>
 
-        <Card className="md:col-span-2">
+        {/* Assigned Equipment Card */}
+        <Card>
            <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                     <Package className="w-5 h-5"/> Equipos Asignados ({assignedItems.length})
@@ -275,11 +292,132 @@ export default function UserDetailsPage() {
                     </div>
                 )}
            </CardContent>
-           <CardFooter>
-               <p className="text-xs text-muted-foreground italic">Basado en la información de asignación de inventario.</p>
-           </CardFooter>
         </Card>
-      </div>
+
+        {/* DA / O365 Account Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Key className="w-5 h-5"/>Cuenta Directorio Activo / O365</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <DetailItem label="Cuenta en DA Creada" value={user.cuentaDAcreada} />
+            <DetailItem label="Nombre Cuenta Windows/O365" value={user.nombreCuentaWindowsO365} />
+            <DetailItem label="Ficha en DA Rellena" value={user.fichaDArellena} />
+            <DetailItem label="Licencia O365 Asignada" value={user.licenciaO365asignada} />
+            <DetailItem label="Asignado a Listas Distribución O365" value={user.asignadoListasDistribucionO365} />
+            <DetailItem label="Cita en Calendario" value={user.citaEnCalendario} />
+            <DetailItem label="Contraseña Personalizada" value={user.contrasenaPersonalizada} />
+            <DetailItem label="Contraseña Inicial Establecida" value={user.contrasenaInicialEstablecida} />
+            <DetailItem label="Tarjeta RFID Acceso - Madrid" value={user.tarjetaRFIDaccesoMadrid} />
+            <DetailItem label="Acceso a Repositorio Otorgado" value={user.accesoRepositorioOtorgado} />
+            <DetailItem label="Ruta Repositorio para Acceso" value={user.rutaRepositorioAcceso} fullWidth />
+            <DetailItem label="Email de Onboarding Enviado" value={user.emailOnboardingEnviado} />
+            <DetailItem label="Usuario Asignado a 'Network Operator' en DA" value={user.usuarioAsignadoNetworkOperatorDA} />
+          </CardContent>
+        </Card>
+
+        {/* Endpoint Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Computer className="w-5 h-5"/>Endpoint (Equipo Informático)</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <DetailItem label="Tipo de Endpoint" value={user.endpointTipo} />
+            <DetailItem label="Fichero Plataformado Entregado" value={user.ficheroPlataformadoEntregado} />
+            <DetailItem label="Usuario Admin Local Establecido" value={user.usuarioAdminLocalEstablecido} />
+            <DetailItem label="Equipo Informático Asignado (ID)" value={user.equipoInformaticoAsignado} />
+            <DetailItem label="Marca y Modelo Endpoint" value={user.marcaModeloEndpoint} />
+            <DetailItem label="Código BitLocker en Repositorio" value={user.codigoBitlockerRepositorio} />
+            <DetailItem label="Número de Serie de Endpoint" value={user.numeroSerieEndpoint} />
+            <DetailItem label="MAC WiFi Endpoint" value={user.macWifiEndpoint} icon={Wifi} />
+            <DetailItem label="MAC Ethernet Endpoint" value={user.macEthernetEndpoint} icon={Cable}/>
+            <DetailItem label="Marca y Modelo Cargador Endpoint" value={user.marcaModeloCargadorEndpoint} />
+            <DetailItem label="Nombre Asignado al Endpoint" value={user.nombreAsignadoEndpoint} />
+            <DetailItem label="Endpoint en Dominio" value={user.endpointEnDominio} />
+            <DetailItem label="Homepage (Factorial) en Navegadores" value={user.homepageFactorialNavegadores} />
+            <DetailItem label="BitLocker Activo" value={user.bitlockerActivo} />
+            <DetailItem label="TeamViewer Corporativo Instalado" value={user.teamviewerCorporativoInstalado} />
+            <DetailItem label="TeamViewer en Endpoint" value={user.teamviewerEnEndpoint} />
+            <DetailItem label="ID TeamViewer Endpoint" value={user.idTeamviewerEndpoint} />
+            <DetailItem label="7Zip Instalado" value={user.sevenZipInstalado} />
+            <DetailItem label="Antimalware Instalado" value={user.antimalwareInstalado} />
+            <DetailItem label="Adobe Acrobat Reader Instalado" value={user.adobeAcrobatReaderInstalado} />
+            <DetailItem label="FortiClient VPN Instalado" value={user.forticlientVpnInstalado} />
+            <DetailItem label="Office 365 Instalado" value={user.office365instalado} />
+            <DetailItem label="Acceso a Office 365 Correcto" value={user.accesoOffice365correcto} />
+            <DetailItem label="OneDrive Instalado" value={user.onedriveInstalado} />
+            <DetailItem label="Deshabilitar OneDrive Backup Escritorio" value={user.deshabilitarOnedriveBackupEscritorio} />
+            <DetailItem label="Teams Instalado" value={user.teamsInstalado} />
+            <DetailItem label="Restauración Sistema Activo" value={user.restauracionSistemaActivo} />
+            <DetailItem label="BGInfo Instalado y Configurado" value={user.bginfoInstaladoConfigurado} />
+            <DetailItem label="Google Earth Pro Instalado" value={user.googleEarthProInstalado} />
+            <DetailItem label="Softphone en Endpoint" value={user.softphoneEnEndpoint} />
+            <DetailItem label="QGIS Instalado" value={user.qgisInstalado} />
+            <DetailItem label="PDF24 Instalado" value={user.pdf24instalado} />
+            <DetailItem label="Idioma Windows Establecido" value={user.idiomaWindowsEstablecido} />
+            <DetailItem label="Firefox y/o Chrome Instalado" value={user.firefoxChromeInstalado} />
+            <DetailItem label="Status Actividad Endpoint" value={user.statusActividad} />
+            <DetailItem label="Visor DWG Instalado" value={user.visorDwgInstalado} />
+            <DetailItem label="Windows 11 Instalado" value={user.windows11instalado} />
+            <DetailItem label="Software Adicional Instalado" value={user.softwareInstaladoAdicional} fullWidth />
+          </CardContent>
+        </Card>
+        
+        {/* Printer Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><PrinterIcon className="w-5 h-5"/>Impresora</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <DetailItem label="Número de Planta de Impresora" value={user.numeroPlantaImpresora} />
+            <DetailItem label="Driver Impresora Instalado" value={user.driverImpresoraInstalado} />
+            <DetailItem label="Código Usuario Impresora" value={user.codigoUsuarioImpresora} />
+            <DetailItem label="Impresora Configurada" value={user.impresoraConfigurada} />
+          </CardContent>
+        </Card>
+
+        {/* Peripherals Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Headphones className="w-5 h-5"/>Periféricos</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <DetailItem label="Monitor Asignado (ID)" value={user.monitorAsignado} icon={MonitorIcon} />
+            <DetailItem label="Monitor Entregado" value={user.monitorEntregado} />
+            <DetailItem label="Teclado Asignado (ID)" value={user.tecladoAsignado} />
+            <DetailItem label="Teclado Entregado" value={user.tecladoEntregado} />
+            <DetailItem label="Ratón Asignado (ID)" value={user.ratonAsignado} icon={Mouse} />
+            <DetailItem label="Ratón Entregado" value={user.ratonEntregado} />
+          </CardContent>
+        </Card>
+        
+        {/* Mobile Telephony Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><SmartphoneIcon className="w-5 h-5"/>Telefonía Móvil</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <DetailItem label="IMEIs del Móvil" value={user.imeisMovil} />
+            <DetailItem label="Smartphone Asignado (ID)" value={user.smartphoneAsignado} />
+            <DetailItem label="Marca y Modelo de Móvil" value={user.marcaModeloMovil} />
+            <DetailItem label="Dirección MAC WiFi Móvil" value={user.direccionMacWifiMovil} />
+            <DetailItem label="GMAIL O APPLE ID PARA MÓVIL CREADA" value={user.gmailAppleIdCreada} />
+            <DetailItem label="Nombre Cuenta Gmail o Apple ID" value={user.nombreCuentaGmailAppleId} />
+            <DetailItem label="Número de Móvil Asignado" value={user.movilAsignadoNumero} />
+            <DetailItem label="Número de Serie del Móvil" value={user.numeroSerieMovil} />
+            <DetailItem label="Outlook Desplegado en Móvil" value={user.outlookDesplegadoMovil} />
+            <DetailItem label="Teams Desplegado en Móvil" value={user.teamsDesplegadoMovil} />
+            <DetailItem label="Harmony Mobile Instalado" value={user.harmonyMobileInstalado} />
+            <DetailItem label="MDM Full o Parcial" value={user.mdmFullParcial} />
+            <DetailItem label="JAMF Instalado" value={user.jamfInstalado} />
+            <DetailItem label="Prueba de Llamadas Móvil OK" value={user.pruebaLlamadasMovil} />
+            <DetailItem label="TeamViewer en Móvil" value={user.teamviewerEnMovil} />
+            <DetailItem label="ID TeamViewer Móvil" value={user.idTeamviewerMovil} />
+            <DetailItem label="Móvil Desasignado" value={user.movilDesasignado} />
+            <DetailItem label="Terminal Fijo de Telefonía Entregado" value={user.terminalFijoTelefonia} />
+            <DetailItem label="Plataforma/MAC Terminal Fijo" value={user.platDireccionMacTerminalFijo} />
+          </CardContent>
+        </Card>
+
+        {/* Comments Card */}
+        <Card>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Info className="w-5 h-5"/>Comentario y Entrega de Material</CardTitle></CardHeader>
+           <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {user.comentarioEntregaMaterial || 'No hay comentarios adicionales.'}
+              </p>
+           </CardContent>
+        </Card>
 
        <Card className="mt-6">
           <CardHeader>
@@ -293,4 +431,3 @@ export default function UserDetailsPage() {
     </div>
   );
 }
-
