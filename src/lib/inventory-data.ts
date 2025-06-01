@@ -1,8 +1,55 @@
 
 import type { InventoryItem, InventoryItemStatus, InventoryItemType } from '@/types/inventory';
 
+// Helper to add default endpoint fields to an item
+const addDefaultEndpointFields = (item: Partial<InventoryItem>): Partial<InventoryItem> => {
+  return {
+    ...item,
+    usuarioAdminLocalEstablecido: item.usuarioAdminLocalEstablecido || null,
+    marcaModeloEndpoint: item.marcaModeloEndpoint || null,
+    codigoBitlockerEnRepositorio: item.codigoBitlockerEnRepositorio || false,
+    macWifiEndpoint: item.macWifiEndpoint || null,
+    macEthernetEndpoint: item.macEthernetEndpoint || null,
+    marcaModeloCargadorEndpoint: item.marcaModeloCargadorEndpoint || null,
+    nombreAsignadoEndpoint: item.nombreAsignadoEndpoint || null,
+    endpointEnDominio: item.endpointEnDominio || false,
+    homepageFactorialNavegadores: item.homepageFactorialNavegadores || false,
+    bitlockerActivo: item.bitlockerActivo || false,
+    teamviewerCorporativoInstalado: item.teamviewerCorporativoInstalado || false,
+    teamviewerEnEndpoint: item.teamviewerEnEndpoint || false,
+    idTeamviewerEndpoint: item.idTeamviewerEndpoint || null,
+    sevenZipInstalado: item.sevenZipInstalado || false,
+    antimalwareInstalado: item.antimalwareInstalado || false,
+    adobeAcrobatReaderInstalado: item.adobeAcrobatReaderInstalado || false,
+    forticlientVpnInstalado: item.forticlientVpnInstalado || false,
+    office365instalado: item.office365instalado || false,
+    accesoOffice365correcto: item.accesoOffice365correcto || false,
+    onedriveInstalado: item.onedriveInstalado || false,
+    deshabilitarOnedriveBackupEscritorio: item.deshabilitarOnedriveBackupEscritorio || false,
+    teamsInstalado: item.teamsInstalado || false,
+    restauracionSistemaActivo: item.restauracionSistemaActivo || false,
+    bginfoInstaladoConfigurado: item.bginfoInstaladoConfigurado || false,
+    googleEarthProInstalado: item.googleEarthProInstalado || false,
+    softphoneEnEndpoint: item.softphoneEnEndpoint || false,
+    qgisInstalado: item.qgisInstalado || false,
+    pdf24instalado: item.pdf24instalado || false,
+    idiomaWindowsEstablecido: item.idiomaWindowsEstablecido || 'Español',
+    firefoxChromeInstalado: item.firefoxChromeInstalado || false,
+    statusActividadEndpoint: item.statusActividadEndpoint || 'Active',
+    visorDwgInstalado: item.visorDwgInstalado || false,
+    windowsVersion: item.windowsVersion || null,
+    softwareInstaladoAdicional: item.softwareInstaladoAdicional || null,
+    ficheroPlataformadoEntregado: item.ficheroPlataformadoEntregado || false,
+    numeroPlantaImpresora: item.numeroPlantaImpresora || null,
+    driverImpresoraInstalado: item.driverImpresoraInstalado || false,
+    codigoUsuarioImpresora: item.codigoUsuarioImpresora || null,
+    impresoraConfigurada: item.impresoraConfigurada || false,
+  };
+};
+
+
 let mockInventoryItems: InventoryItem[] = [
-  { 
+  addDefaultEndpointFields({ 
     id: 'ASSET-001', 
     name: 'Laptop Pro 15"', 
     type: 'Portátil', 
@@ -13,9 +60,14 @@ let mockInventoryItems: InventoryItem[] = [
     serialNumber: 'SN123XYZ', 
     purchaseDate: '2023-01-15', 
     warrantyEndDate: '2026-01-14', 
-    notes: 'Pequeño arañazo en la tapa.' 
-  },
-  { 
+    notes: 'Pequeño arañazo en la tapa.',
+    // Example endpoint data
+    nombreAsignadoEndpoint: 'ALICE-LAPTOP',
+    windowsVersion: '11 Pro',
+    bitlockerActivo: true,
+    office365instalado: true,
+  }) as InventoryItem,
+  addDefaultEndpointFields({ 
     id: 'ASSET-002', 
     name: 'Ratón Inalámbrico X', 
     type: 'Ratón', 
@@ -27,8 +79,8 @@ let mockInventoryItems: InventoryItem[] = [
     purchaseDate: '2023-05-20', 
     warrantyEndDate: '2024-05-19', 
     notes: '' 
-  },
-  { 
+  }) as InventoryItem,
+  addDefaultEndpointFields({ 
     id: 'ASSET-003', 
     name: 'Docking Station Z', 
     type: 'Docking Station', 
@@ -40,8 +92,8 @@ let mockInventoryItems: InventoryItem[] = [
     purchaseDate: '2022-11-01', 
     warrantyEndDate: '2024-10-31', 
     notes: 'Requiere adaptador de corriente específico.' 
-  },
-  { 
+  }) as InventoryItem,
+  addDefaultEndpointFields({ 
     id: 'ASSET-004', 
     name: 'Teléfono Móvil S23', 
     type: 'Móvil', 
@@ -53,8 +105,8 @@ let mockInventoryItems: InventoryItem[] = [
     purchaseDate: '2024-02-10', 
     warrantyEndDate: '2026-02-09', 
     notes: 'Versión desbloqueada.' 
-  },
-  { 
+  }) as InventoryItem,
+  addDefaultEndpointFields({ 
     id: 'ASSET-005', 
     name: 'Monitor 27" 4K', 
     type: 'Monitor', 
@@ -66,16 +118,16 @@ let mockInventoryItems: InventoryItem[] = [
     purchaseDate: '2023-08-05', 
     warrantyEndDate: '2026-08-04', 
     notes: 'Incluye cable HDMI.' 
-  },
-   { id: 'ASSET-006', name: 'Keyboard K1', type: 'Teclado', status: 'Asignado', assignedToId: 'USR-004', assignedTo: 'Diana Prince (dprince@example.com)', barcode: 'KB001', purchaseDate: '2021-06-01', serialNumber: 'SNKB001', warrantyEndDate: '2023-05-31', notes: '' },
-   { id: 'ASSET-007', name: 'Dev Laptop X', type: 'Portátil', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'DEVLP01', purchaseDate: '2020-01-15', serialNumber: 'SNDEVLP01', warrantyEndDate: '2023-01-14', notes: 'For development purposes' },
-   { id: 'ASSET-008', name: 'Server Rack R1', type: 'Servidor', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'SRVR01', purchaseDate: '2020-01-15', serialNumber: 'SNSRVR01', warrantyEndDate: '2025-01-14', notes: 'Main web server' },
+  }) as InventoryItem,
+   addDefaultEndpointFields({ id: 'ASSET-006', name: 'Keyboard K1', type: 'Teclado', status: 'Asignado', assignedToId: 'USR-004', assignedTo: 'Diana Prince (dprince@example.com)', barcode: 'KB001', purchaseDate: '2021-06-01', serialNumber: 'SNKB001', warrantyEndDate: '2023-05-31', notes: '' }) as InventoryItem,
+   addDefaultEndpointFields({ id: 'ASSET-007', name: 'Dev Laptop X', type: 'Portátil', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'DEVLP01', purchaseDate: '2020-01-15', serialNumber: 'SNDEVLP01', warrantyEndDate: '2023-01-14', notes: 'For development purposes', nombreAsignadoEndpoint: 'ETHAN-DEVBOX', windowsVersion: '10 Pro', antimalwareInstalado: true }) as InventoryItem,
+   addDefaultEndpointFields({ id: 'ASSET-008', name: 'Server Rack R1', type: 'Servidor', status: 'Asignado', assignedToId: 'USR-005', assignedTo: 'Ethan Hunt (ehunt@example.com)', barcode: 'SRVR01', purchaseDate: '2020-01-15', serialNumber: 'SNSRVR01', warrantyEndDate: '2025-01-14', notes: 'Main web server' }) as InventoryItem,
 ];
 
 export async function getAllInventoryItems(): Promise<InventoryItem[]> {
   console.log("Fetching all inventory items (mock)");
   await new Promise(resolve => setTimeout(resolve, 50));
-  return [...mockInventoryItems];
+  return mockInventoryItems.map(item => ({ ...item }));
 }
 
 export async function getInventoryItemById(id: string): Promise<InventoryItem | undefined> {
@@ -96,12 +148,32 @@ export async function addInventoryItem(itemData: Omit<InventoryItem, 'id'>): Pro
   console.log("Adding new inventory item (mock):", itemData);
   await new Promise(resolve => setTimeout(resolve, 100));
   const newId = `ASSET-${String(mockInventoryItems.length + 1).padStart(3, '0')}`;
-  const newItem: InventoryItem = {
+  
+  const newItemBase: InventoryItem = {
     id: newId,
-    ...itemData,
+    name: itemData.name,
+    type: itemData.type,
+    status: itemData.status,
+    barcode: itemData.barcode,
+    serialNumber: itemData.serialNumber || null,
+    purchaseDate: itemData.purchaseDate || null,
+    warrantyEndDate: itemData.warrantyEndDate || null,
+    notes: itemData.notes || null,
+    assignedTo: itemData.assignedTo || null,
+    assignedToId: itemData.assignedToId || null,
   };
+
+  const newItem = addDefaultEndpointFields(newItemBase) as InventoryItem;
+  
+  // Populate specific endpoint fields if provided
+  for (const key in itemData) {
+    if (Object.prototype.hasOwnProperty.call(itemData, key) && key !== 'id') {
+      // @ts-ignore
+      newItem[key] = itemData[key];
+    }
+  }
+  
   mockInventoryItems.push(newItem);
-  // TODO: If itemData.assignedToId is set, update the corresponding user's assignedItems count in user-data.ts
   return { ...newItem };
 }
 
@@ -110,7 +182,6 @@ export async function updateInventoryItem(id: string, itemUpdateData: Partial<Om
   await new Promise(resolve => setTimeout(resolve, 100));
   const itemIndex = mockInventoryItems.findIndex(i => i.id === id);
   if (itemIndex !== -1) {
-    // TODO: Handle changes to assignedToId to update user's assignedItems count
     mockInventoryItems[itemIndex] = { ...mockInventoryItems[itemIndex], ...itemUpdateData };
     return { ...mockInventoryItems[itemIndex] };
   }
@@ -122,7 +193,6 @@ export async function deleteInventoryItem(id: string): Promise<boolean> {
   await new Promise(resolve => setTimeout(resolve, 100));
   const itemIndex = mockInventoryItems.findIndex(i => i.id === id);
   if (itemIndex !== -1) {
-    // TODO: If item was assigned, update the corresponding user's assignedItems count
     mockInventoryItems.splice(itemIndex, 1);
     return true;
   }

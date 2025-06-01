@@ -29,13 +29,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Loader2, PackagePlus } from 'lucide-react';
 import { addInventoryItem } from '@/lib/inventory-data';
-import type { InventoryItemStatus, InventoryItemType } from '@/types/inventory';
+import type { InventoryItemStatus, InventoryItemType, InventoryItem } from '@/types/inventory';
+import { Separator } from '@/components/ui/separator';
 
 const itemStatuses: InventoryItemStatus[] = ["En Stock", "Asignado", "Mantenimiento", "Retirado"];
 const itemTypes: InventoryItemType[] = ["Portátil", "Sobremesa", "Monitor", "Móvil", "Tablet", "Teclado", "Ratón", "Docking Station", "Impresora", "Servidor", "Redes", "Almacenamiento", "Otro"];
 
+const booleanStringTransform = z.string().transform(val => val === "true").optional().nullable();
 
-const formSchema = z.object({
+const baseSchema = {
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
@@ -50,16 +52,94 @@ const formSchema = z.object({
   status: z.enum(itemStatuses, {
     errorMap: () => ({ message: "Por favor, selecciona un estado válido."})
   }),
-  assignedTo: z.string().optional().nullable(), // This would be the display string, e.g. "User Name (email)"
-  assignedToId: z.string().optional().nullable(), // This would be the actual User ID
-});
+  assignedTo: z.string().optional().nullable(), 
+  assignedToId: z.string().optional().nullable(),
+};
+
+const endpointSchemaFields = {
+  usuarioAdminLocalEstablecido: z.string().optional().nullable(),
+  marcaModeloEndpoint: z.string().optional().nullable(),
+  codigoBitlockerEnRepositorio: booleanStringTransform,
+  macWifiEndpoint: z.string().optional().nullable(),
+  macEthernetEndpoint: z.string().optional().nullable(),
+  marcaModeloCargadorEndpoint: z.string().optional().nullable(),
+  nombreAsignadoEndpoint: z.string().optional().nullable(),
+  endpointEnDominio: booleanStringTransform,
+  homepageFactorialNavegadores: booleanStringTransform,
+  bitlockerActivo: booleanStringTransform,
+  teamviewerCorporativoInstalado: booleanStringTransform,
+  teamviewerEnEndpoint: booleanStringTransform,
+  idTeamviewerEndpoint: z.string().optional().nullable(),
+  sevenZipInstalado: booleanStringTransform,
+  antimalwareInstalado: booleanStringTransform,
+  adobeAcrobatReaderInstalado: booleanStringTransform,
+  forticlientVpnInstalado: booleanStringTransform,
+  office365instalado: booleanStringTransform,
+  accesoOffice365correcto: booleanStringTransform,
+  onedriveInstalado: booleanStringTransform,
+  deshabilitarOnedriveBackupEscritorio: booleanStringTransform,
+  teamsInstalado: booleanStringTransform,
+  restauracionSistemaActivo: booleanStringTransform,
+  bginfoInstaladoConfigurado: booleanStringTransform,
+  googleEarthProInstalado: booleanStringTransform,
+  softphoneEnEndpoint: booleanStringTransform,
+  qgisInstalado: booleanStringTransform,
+  pdf24instalado: booleanStringTransform,
+  idiomaWindowsEstablecido: z.string().optional().nullable(),
+  firefoxChromeInstalado: booleanStringTransform,
+  statusActividadEndpoint: z.string().optional().nullable(),
+  visorDwgInstalado: booleanStringTransform,
+  windowsVersion: z.string().optional().nullable(),
+  softwareInstaladoAdicional: z.string().optional().nullable(),
+  ficheroPlataformadoEntregado: booleanStringTransform,
+  numeroPlantaImpresora: z.string().optional().nullable(),
+  driverImpresoraInstalado: booleanStringTransform,
+  codigoUsuarioImpresora: z.string().optional().nullable(),
+  impresoraConfigurada: booleanStringTransform,
+};
+
+const formSchema = z.object({ ...baseSchema, ...endpointSchemaFields });
+
+type ItemFormData = z.infer<typeof formSchema>;
+
+function renderSelectBooleanField(form: any, name: keyof ItemFormData, label: string, description?: string) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <Select 
+            onValueChange={field.onChange} 
+            value={field.value?.toString()} // Booleans need to be strings for Select value
+            defaultValue={field.value === true ? "true" : field.value === false ? "false" : undefined}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una opción" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value="true">Sí</SelectItem>
+              <SelectItem value="false">No</SelectItem>
+            </SelectContent>
+          </Select>
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 
 export default function AddInventoryItemPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<ItemFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -72,15 +152,68 @@ export default function AddInventoryItemPage() {
       status: "En Stock",
       assignedTo: "",
       assignedToId: "",
+      // Default endpoint fields to 'false' as string for select or empty/null
+      usuarioAdminLocalEstablecido: "",
+      marcaModeloEndpoint: "",
+      codigoBitlockerEnRepositorio: "false",
+      macWifiEndpoint: "",
+      macEthernetEndpoint: "",
+      marcaModeloCargadorEndpoint: "",
+      nombreAsignadoEndpoint: "",
+      endpointEnDominio: "false",
+      homepageFactorialNavegadores: "false",
+      bitlockerActivo: "false",
+      teamviewerCorporativoInstalado: "false",
+      teamviewerEnEndpoint: "false",
+      idTeamviewerEndpoint: "",
+      sevenZipInstalado: "false",
+      antimalwareInstalado: "false",
+      adobeAcrobatReaderInstalado: "false",
+      forticlientVpnInstalado: "false",
+      office365instalado: "false",
+      accesoOffice365correcto: "false",
+      onedriveInstalado: "false",
+      deshabilitarOnedriveBackupEscritorio: "false",
+      teamsInstalado: "false",
+      restauracionSistemaActivo: "false",
+      bginfoInstaladoConfigurado: "false",
+      googleEarthProInstalado: "false",
+      softphoneEnEndpoint: "false",
+      qgisInstalado: "false",
+      pdf24instalado: "false",
+      idiomaWindowsEstablecido: "Español",
+      firefoxChromeInstalado: "false",
+      statusActividadEndpoint: "Active",
+      visorDwgInstalado: "false",
+      windowsVersion: "",
+      softwareInstaladoAdicional: "",
+      ficheroPlataformadoEntregado: "false",
+      numeroPlantaImpresora: "",
+      driverImpresoraInstalado: "false",
+      codigoUsuarioImpresora: "",
+      impresoraConfigurada: "false",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const itemType = form.watch("type");
+
+  async function onSubmit(values: ItemFormData) {
     setIsSubmitting(true);
-    console.log("Form Submitted:", values);
+    
+    // Transform string "true"/"false" to boolean for boolean fields
+    const transformedValues: any = { ...values };
+    for (const key in endpointSchemaFields) {
+      if (Object.prototype.hasOwnProperty.call(endpointSchemaFields, key) && transformedValues[key] !== undefined && transformedValues[key] !== null) {
+        if (endpointSchemaFields[key as keyof typeof endpointSchemaFields] === booleanStringTransform) {
+           transformedValues[key] = transformedValues[key] === "true";
+        }
+      }
+    }
+    console.log("Form Submitted (transformed):", transformedValues);
+
 
     try {
-      const newItem = await addInventoryItem(values);
+      const newItem = await addInventoryItem(transformedValues as Omit<InventoryItem, 'id'>);
       toast({
         title: "Equipo Añadido Correctamente",
         description: `Etiqueta de Activo ${newItem.id} creada para ${newItem.name}.`,
@@ -101,7 +234,7 @@ export default function AddInventoryItemPage() {
 
   return (
     <div className="flex justify-center items-start min-h-screen p-4 md:p-8">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle className="text-2xl text-primary flex items-center gap-2">
             <PackagePlus className="w-6 h-6"/> Añadir Nuevo Equipo al Inventario
@@ -206,7 +339,7 @@ export default function AddInventoryItemPage() {
                 name="purchaseDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>FECHA DE ENTRADA</FormLabel>
+                    <FormLabel>Fecha de Compra/Entrada</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} value={field.value ?? ""} />
                     </FormControl>
@@ -227,13 +360,100 @@ export default function AddInventoryItemPage() {
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="assignedToId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID de Usuario Asignado (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., USR-001" {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormDescription>Introduce el ID del usuario si este equipo está asignado.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="assignedTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Usuario Asignado (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Alice Smith (Para referencia)" {...field} value={field.value ?? ""} />
+                    </FormControl>
+                     <FormDescription>Nombre del usuario (informativo, se actualiza con el ID).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+
+              {(itemType === "Portátil" || itemType === "Sobremesa") && (
+                <>
+                  <Separator className="my-6" />
+                  <h3 className="text-xl font-semibold text-primary border-b pb-2">Detalles del Endpoint</h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField control={form.control} name="marcaModeloEndpoint" render={({ field }) => (<FormItem><FormLabel>Marca y Modelo Específico</FormLabel><FormControl><Input placeholder="Ej: Dell XPS 15 9530" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="nombreAsignadoEndpoint" render={({ field }) => (<FormItem><FormLabel>Nombre de Host/NetBIOS</FormLabel><FormControl><Input placeholder="Ej: ES-LPT-ASmith" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="usuarioAdminLocalEstablecido" render={({ field }) => (<FormItem><FormLabel>Admin. Local Establecido</FormLabel><FormControl><Input placeholder="Ej: soporte_local" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "codigoBitlockerEnRepositorio", "Código Bitlocker en Repositorio")}
+                    <FormField control={form.control} name="macWifiEndpoint" render={({ field }) => (<FormItem><FormLabel>MAC WiFi</FormLabel><FormControl><Input placeholder="00:1A:2B:3C:4D:5E" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="macEthernetEndpoint" render={({ field }) => (<FormItem><FormLabel>MAC Ethernet</FormLabel><FormControl><Input placeholder="00:1A:2B:3C:4D:5F" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="marcaModeloCargadorEndpoint" render={({ field }) => (<FormItem><FormLabel>Marca/Modelo Cargador</FormLabel><FormControl><Input placeholder="Ej: Dell 130W USB-C" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "endpointEnDominio", "Endpoint en Dominio")}
+                    {renderSelectBooleanField(form, "homepageFactorialNavegadores", "Homepage Factorial en Navegadores")}
+                    {renderSelectBooleanField(form, "bitlockerActivo", "BitLocker Activo")}
+                    {renderSelectBooleanField(form, "ficheroPlataformadoEntregado", "Fichero Plataformado Entregado")}
+                    <FormField control={form.control} name="windowsVersion" render={({ field }) => (<FormItem><FormLabel>Versión Windows</FormLabel><FormControl><Input placeholder="Ej: 11 Pro, 10 Enterprise" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="idiomaWindowsEstablecido" render={({ field }) => (<FormItem><FormLabel>Idioma Windows</FormLabel><FormControl><Input placeholder="Ej: Español (España)" {...field} value={field.value ?? "Español"} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="statusActividadEndpoint" render={({ field }) => (<FormItem><FormLabel>Estado Actividad Endpoint</FormLabel><FormControl><Input placeholder="Ej: Active" {...field} value={field.value ?? "Active"} /></FormControl><FormMessage /></FormItem>)} />
+
+
+                    <Separator className="md:col-span-2 lg:col-span-3 my-2" />
+                    <h4 className="text-md font-medium text-muted-foreground md:col-span-2 lg:col-span-3">Software y Configuración</h4>
+                    
+                    {renderSelectBooleanField(form, "teamviewerCorporativoInstalado", "TeamViewer Corp. Instalado")}
+                    {renderSelectBooleanField(form, "teamviewerEnEndpoint", "TeamViewer en Endpoint")}
+                    <FormField control={form.control} name="idTeamviewerEndpoint" render={({ field }) => (<FormItem><FormLabel>ID TeamViewer Endpoint</FormLabel><FormControl><Input placeholder="123 456 789" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "sevenZipInstalado", "7Zip Instalado")}
+                    {renderSelectBooleanField(form, "antimalwareInstalado", "Antimalware Instalado")}
+                    {renderSelectBooleanField(form, "adobeAcrobatReaderInstalado", "Adobe Acrobat Reader Instalado")}
+                    {renderSelectBooleanField(form, "forticlientVpnInstalado", "FortiClient VPN Instalado")}
+                    {renderSelectBooleanField(form, "office365instalado", "Office 365 Instalado")}
+                    {renderSelectBooleanField(form, "accesoOffice365correcto", "Acceso Office 365 Correcto")}
+                    {renderSelectBooleanField(form, "onedriveInstalado", "OneDrive Instalado")}
+                    {renderSelectBooleanField(form, "deshabilitarOnedriveBackupEscritorio", "Deshabilitar Backup Escritorio OneDrive")}
+                    {renderSelectBooleanField(form, "teamsInstalado", "Teams Instalado")}
+                    {renderSelectBooleanField(form, "restauracionSistemaActivo", "Restauración Sistema Activo")}
+                    {renderSelectBooleanField(form, "bginfoInstaladoConfigurado", "BGInfo Instalado/Configurado")}
+                    {renderSelectBooleanField(form, "googleEarthProInstalado", "Google Earth Pro Instalado")}
+                    {renderSelectBooleanField(form, "softphoneEnEndpoint", "Softphone en Endpoint")}
+                    {renderSelectBooleanField(form, "qgisInstalado", "QGIS Instalado")}
+                    {renderSelectBooleanField(form, "pdf24instalado", "PDF24 Instalado")}
+                    {renderSelectBooleanField(form, "firefoxChromeInstalado", "Firefox y/o Chrome Instalado")}
+                    {renderSelectBooleanField(form, "visorDwgInstalado", "Visor DWG Instalado")}
+                    <FormField control={form.control} name="softwareInstaladoAdicional" render={({ field }) => (<FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Otro Software Instalado</FormLabel><FormControl><Textarea placeholder="Listar otro software..." {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    
+                    <Separator className="md:col-span-2 lg:col-span-3 my-2" />
+                    <h4 className="text-md font-medium text-muted-foreground md:col-span-2 lg:col-span-3">Configuración de Impresora (en Endpoint)</h4>
+                    <FormField control={form.control} name="numeroPlantaImpresora" render={({ field }) => (<FormItem><FormLabel>Nº Planta Impresora</FormLabel><FormControl><Input placeholder="Ej: P02" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "driverImpresoraInstalado", "Driver Impresora Instalado en Endpoint")}
+                    <FormField control={form.control} name="codigoUsuarioImpresora" render={({ field }) => (<FormItem><FormLabel>Código Usuario Impresora (si aplica)</FormLabel><FormControl><Input placeholder="12345" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    {renderSelectBooleanField(form, "impresoraConfigurada", "Impresora Configurada en Endpoint")}
+                  </div>
+                </>
+              )}
+
+              <Separator className="my-6"/>
               <FormField
                 control={form.control}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notas (Opcional)</FormLabel>
+                    <FormLabel>Notas Generales del Equipo (Opcional)</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Cualquier detalle adicional sobre el equipo..."
