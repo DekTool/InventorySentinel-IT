@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Building, Package, AlertTriangle, Loader2, UserX, Phone, Printer, User as UserIcon, ShieldCheck, CalendarDays } from "lucide-react";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from "react";
@@ -16,6 +16,7 @@ import type { User } from '@/types/user';
 import type { InventoryItem } from '@/types/inventory';
 import { getUserById, deleteUser } from '@/lib/user-data';
 import { getInventoryItemsByUserId } from '@/lib/inventory-data';
+import { Badge } from '@/components/ui/badge';
 
 
 const getInitials = (name: string) => {
@@ -97,7 +98,7 @@ export default function UserDetailsPage() {
             title: "Acción Requerida",
             description: `El usuario ${user.name} tiene ${assignedItems.length} equipo(s) asignado(s). Debes reasignarlos o retirarlos antes de eliminar al usuario.`,
             variant: "destructive",
-            duration: 5000,
+            duration: 7000,
         });
         return;
     }
@@ -147,6 +148,16 @@ export default function UserDetailsPage() {
        </div>
      )
    }
+   
+  const getRoleVariant = (role?: User['role']): "default" | "secondary" | "outline" => {
+    if (!role) return 'outline';
+    switch (role) {
+      case 'Administrador': return 'default';
+      case 'Tecnico': return 'secondary';
+      case 'Usuario': return 'outline';
+      default: return 'outline';
+    }
+  };
 
   return (
     <div className="flex flex-col h-full p-4 md:p-8">
@@ -181,6 +192,7 @@ export default function UserDetailsPage() {
             </Avatar>
             <CardTitle className="text-2xl text-primary">{user.name}</CardTitle>
              <CardDescription>{user.id}</CardDescription>
+             <Badge variant={getRoleVariant(user.role)} className="capitalize mt-1">{user.role}</Badge>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Separator />
@@ -196,10 +208,11 @@ export default function UserDetailsPage() {
                  <Phone className="w-4 h-4 text-muted-foreground"/>
                 <span>{user.phone || 'N/A'}</span>
              </div>
-             <Separator />
-             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Incorporación: {user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'N/A'}</span>
+             <div className="flex items-center gap-2">
+                 <CalendarDays className="w-4 h-4 text-muted-foreground"/>
+                 <span>Incorporación: {user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'N/A'}</span>
              </div>
+             <Separator />
           </CardContent>
            <CardFooter>
               <Link href={`/users/${userId}/edit`} passHref className="w-full">

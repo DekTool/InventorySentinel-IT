@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Search, Package, Upload, Loader2, User as UserIcon } from "lucide-react";
+import { PlusCircle, Search, Package, Upload, Loader2, User as UserIcon, ShieldCheck } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@/types/user";
 import { getAllUsers } from "@/lib/user-data";
+import { Badge } from "@/components/ui/badge";
+
 
 const getInitials = (name: string) => {
   if (!name) return '';
@@ -20,9 +22,8 @@ const getInitials = (name: string) => {
   return '';
 }
 
-// Make the component a client component to use hooks
 export default function UsersPage() {
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,11 +42,13 @@ export default function UsersPage() {
     if (!searchTerm.trim()) {
       return users;
     }
+    const lowerSearchTerm = searchTerm.toLowerCase();
     return users.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(lowerSearchTerm) ||
+      user.email.toLowerCase().includes(lowerSearchTerm) ||
+      user.department.toLowerCase().includes(lowerSearchTerm) ||
+      user.id.toLowerCase().includes(lowerSearchTerm) ||
+      user.role.toLowerCase().includes(lowerSearchTerm)
     );
   }, [users, searchTerm]);
 
@@ -55,6 +58,15 @@ export default function UsersPage() {
         description: "La carga masiva de usuarios estará disponible pronto.",
         variant: "default"
     });
+  };
+
+  const getRoleVariant = (role: User['role']): "default" | "secondary" | "outline" => {
+    switch (role) {
+      case 'Administrador': return 'default';
+      case 'Tecnico': return 'secondary';
+      case 'Usuario': return 'outline';
+      default: return 'outline';
+    }
   };
 
   return (
@@ -75,7 +87,7 @@ export default function UsersPage() {
 
       <div className="mb-4 flex items-center gap-2">
         <Input
-          placeholder="Buscar por Nombre, Email, Departamento, ID..."
+          placeholder="Buscar por Nombre, Email, Departamento, ID, Rol..."
           className="max-w-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -100,6 +112,7 @@ export default function UsersPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Departamento</TableHead>
+                <TableHead>Rol</TableHead>
                 <TableHead>Equipos Asignados</TableHead>
                 <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
@@ -111,13 +124,18 @@ export default function UsersPage() {
                   <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{user.name}</span>
                       </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.department}</TableCell>
+                  <TableCell>
+                    <Badge variant={getRoleVariant(user.role)} className="capitalize">
+                      {user.role}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                       <div className="flex items-center gap-1 text-muted-foreground">
                           <Package className="w-4 h-4"/>
@@ -133,7 +151,7 @@ export default function UsersPage() {
               ))}
               {filteredUsers.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No se encontraron usuarios que coincidan con la búsqueda o no hay usuarios registrados.
                   </TableCell>
                 </TableRow>

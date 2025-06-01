@@ -9,19 +9,28 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { getUserById, updateUser } from '@/lib/user-data';
-import type { User } from '@/types/user';
+import type { User, UserRole } from '@/types/user';
+import { userRoles } from '@/lib/user-data';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -33,6 +42,10 @@ const formSchema = z.object({
   }),
   phone: z.string().optional().nullable(),
   joinDate: z.string().optional().nullable(),
+  role: z.enum(userRoles as [UserRole, ...UserRole[]], {
+    errorMap: () => ({ message: "Por favor, selecciona un rol válido." })
+  }),
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres."}).optional().or(z.literal('')), // Optional: for changing password
 });
 
 type UserFormData = z.infer<typeof formSchema>;
@@ -49,7 +62,10 @@ export default function EditUserPage() {
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {}, // Will be set by useEffect
+    defaultValues: {
+        role: "Usuario", // Default role
+        password: "", // Password field is empty by default for editing
+    },
   });
 
   const fetchUserData = useCallback(async () => {
@@ -64,6 +80,7 @@ export default function EditUserPage() {
       form.reset({
         ...data,
         joinDate: data.joinDate ? new Date(data.joinDate).toISOString().split('T')[0] : "",
+        password: "", // Keep password blank on load for editing
       });
     } else {
       toast({ title: "Error", description: "Usuario no encontrado.", variant: "destructive" });
@@ -78,10 +95,18 @@ export default function EditUserPage() {
 
   async function onSubmit(values: UserFormData) {
     setIsSubmitting(true);
-    console.log("Form Submitted for User Update:", values);
+    
+    const updatePayload: Partial<User> = { ...values };
+    if (!values.password) {
+      delete updatePayload.password; // Don't send empty password if not changed
+    }
+    // In a real app, if password is provided, hash it here before sending.
+
+    console.log("Form Submitted for User Update:", updatePayload);
+
 
     try {
-      const updatedUser = await updateUser(userId, values);
+      const updatedUser = await updateUser(userId, updatePayload);
       if (updatedUser) {
         toast({
           title: "Usuario Actualizado Correctamente",
@@ -171,6 +196,23 @@ export default function EditUserPage() {
 
               <FormField
                 control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nueva Contraseña (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Dejar en blanco para no cambiar" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Si se proporciona, la contraseña se actualizará (mínimo 8 caracteres).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="department"
                 render={({ field }) => (
                   <FormItem>
@@ -178,6 +220,29 @@ export default function EditUserPage() {
                     <FormControl>
                       <Input placeholder="e.g., Ingeniería, Marketing" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rol</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userRoles.map(role => (
+                          <SelectItem key={role} value={role}>{role}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -16,11 +16,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Loader2, UserPlus } from 'lucide-react';
 import { addUser } from '@/lib/user-data';
+import type { UserRole } from '@/types/user';
+import { userRoles } from '@/lib/user-data';
+
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -31,7 +41,11 @@ const formSchema = z.object({
     message: "El departamento debe tener al menos 2 caracteres.",
   }),
   phone: z.string().optional().nullable(),
-  joinDate: z.string().optional().nullable(), // Added joinDate
+  joinDate: z.string().optional().nullable(),
+  role: z.enum(userRoles as [UserRole, ...UserRole[]], { // Ensure Zod enum gets a non-empty array
+    errorMap: () => ({ message: "Por favor, selecciona un rol válido." })
+  }),
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres."}).optional().or(z.literal('')), // Optional for initial setup, or make it required
 });
 
 type UserFormData = z.infer<typeof formSchema>;
@@ -49,6 +63,8 @@ export default function AddUserPage() {
       department: "",
       phone: "",
       joinDate: "",
+      role: "Usuario",
+      password: "",
     },
   });
 
@@ -56,8 +72,11 @@ export default function AddUserPage() {
     setIsSubmitting(true);
     console.log("Form Submitted:", values);
 
+    // In a real app, hash the password here before sending to the server
+    // For this mock, we're sending it as is (NOT SECURE)
+
     try {
-      const newUser = await addUser(values);
+      const newUser = await addUser(values); // addUser needs to accept role and password
       toast({
         title: "Usuario Añadido Correctamente",
         description: `El usuario ${newUser.name} (ID: ${newUser.id}) ha sido creado.`,
@@ -114,6 +133,24 @@ export default function AddUserPage() {
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contraseña</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Introduce una contraseña" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Mínimo 8 caracteres. En una aplicación real, esta contraseña se almacenaría de forma segura.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
               <FormField
                 control={form.control}
@@ -124,6 +161,29 @@ export default function AddUserPage() {
                     <FormControl>
                       <Input placeholder="e.g., Ingeniería, Marketing" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rol</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userRoles.map(role => (
+                          <SelectItem key={role} value={role}>{role}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
