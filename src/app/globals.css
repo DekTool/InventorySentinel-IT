@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
 
-    --primary: 210 90% 50%; /* Vibrant blue */
-    --primary-foreground: 0 0% 100%; /* White text on primary blue */
+    --primary: 30 100% 50%; /* Orange from logo */
+    --primary-foreground: 220 10% 15%; /* Dark cool grey for text on orange */
 
     --secondary: 220 15% 94%; /* Lighter cool grey for secondary elements */
     --secondary-foreground: 220 10% 25%; /* Darker grey text for secondary elements */
@@ -22,19 +22,19 @@
     --muted: 220 15% 94%;
     --muted-foreground: 220 5% 50%; /* Softer grey for muted text */
 
-    --accent: 210 90% 55%; /* A slightly lighter or variant blue for accents */
-    --accent-foreground: 0 0% 100%; /* White text on accent blue */
+    --accent: 30 100% 55%; /* Lighter/brighter orange for accents */
+    --accent-foreground: 220 10% 15%; /* Dark cool grey text on accent orange */
 
     --destructive: 0 80% 55%; /* A clear red for destructive actions */
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 10% 85%; /* Light cool grey for borders */
     --input: 0 0% 100%;    /* White background for input fields */
-    --ring: 210 90% 50%;   /* Blue focus ring, matching primary */
+    --ring: 30 100% 50%;   /* Orange focus ring, matching new primary */
 
-    --chart-1: 210 90% 50%; /* Blue */
+    --chart-1: 30 100% 50%; /* Orange for charts */
     --chart-2: 170 70% 45%; /* Teal */
-    --chart-3: 30 90% 55%;  /* Orange */
+    --chart-3: 30 90% 55%;  /* Orange (similar to accent) */
     --chart-4: 270 70% 60%; /* Purple */
     --chart-5: 220 5% 65%;  /* Medium Grey */
 
@@ -43,12 +43,12 @@
     /* Sidebar variables for light theme */
     --sidebar-background: 220 15% 96%; /* Slightly off-white/very light grey for sidebar */
     --sidebar-foreground: 220 10% 20%; /* Dark text in sidebar */
-    --sidebar-primary: 210 90% 50%;    /* Primary blue for active/important items in sidebar */
-    --sidebar-primary-foreground: 0 0% 100%; /* White text on sidebar primary */
+    --sidebar-primary: 30 100% 50%;    /* Primary orange for active/important items in sidebar */
+    --sidebar-primary-foreground: 220 10% 15%; /* Dark text on sidebar primary orange */
     --sidebar-accent: 220 20% 90%;     /* Lighter grey for sidebar hover backgrounds */
-    --sidebar-accent-foreground: 210 90% 50%; /* Primary blue for text on sidebar hover */
+    --sidebar-accent-foreground: 30 100% 50%; /* Primary orange for text on sidebar hover */
     --sidebar-border: 220 10% 85%; /* Consistent light border for sidebar */
-    --sidebar-ring: 210 90% 50%;   /* Blue focus ring for sidebar elements */
+    --sidebar-ring: 30 100% 50%;   /* Orange focus ring for sidebar elements */
   }
 
   .dark {
