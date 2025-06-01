@@ -12,6 +12,14 @@ let mockUsers: User[] = [
 
 export const userRoles: UserRole[] = ["Administrador", "Tecnico", "Usuario"];
 
+// --- Mocked Current User Role ---
+// Cambia este valor para simular diferentes roles de usuario en la UI.
+// Opciones: "Administrador", "Tecnico", "Usuario"
+// Por defecto es 'Usuario' para mostrar las restricciones.
+export const MOCKED_CURRENT_USER_ROLE: UserRole = 'Usuario';
+// --- End Mocked Current User Role ---
+
+
 export async function getAllUsers(): Promise<User[]> {
   console.log("Fetching all users (mock)");
   await new Promise(resolve => setTimeout(resolve, 50));
@@ -44,6 +52,7 @@ export async function updateUser(id: string, userUpdateData: Partial<Omit<User, 
   const userIndex = mockUsers.findIndex(u => u.id === id);
   if (userIndex !== -1) {
     mockUsers[userIndex] = { ...mockUsers[userIndex], ...userUpdateData };
+    // If role is updated here, and we had a real auth system, we might need to update session/token.
     return { ...mockUsers[userIndex] };
   }
   return null;

@@ -18,6 +18,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button'; 
+import { MOCKED_CURRENT_USER_ROLE } from '@/lib/user-data'; // Import mock role
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -32,6 +33,13 @@ export function AppSidebar() {
     if (path === '/') return pathname === path;
     return pathname.startsWith(path);
   };
+
+  // Define which items are visible for each role
+  // This is a simplified approach for demonstration. A real app would use a proper auth context/service.
+  const isUserRole = MOCKED_CURRENT_USER_ROLE === 'Usuario';
+  // const isTecnicoRole = MOCKED_CURRENT_USER_ROLE === 'Tecnico';
+  // const isAdminRole = MOCKED_CURRENT_USER_ROLE === 'Administrador';
+  // For now, Tecnico and Administrador see everything.
 
   return (
     <>
@@ -49,6 +57,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="flex-1 overflow-y-auto">
         <SidebarMenu>
+          {/* Always visible */}
           <SidebarMenuItem>
             <Link href="/" passHref legacyBehavior>
               <SidebarMenuButton
@@ -63,6 +72,8 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+
+          {/* Inventario - visible for all for now, Usuario will see filtered data */}
           <SidebarMenuItem>
             <Link href="/inventory" passHref legacyBehavior>
               <SidebarMenuButton
@@ -71,27 +82,32 @@ export function AppSidebar() {
                 tooltip="Inventario"
               >
                 <a>
-                  {/* Replaced Package icon with a generic placeholder or consider a more abstract one if Package is too specific */}
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                   <span>Inventario</span>
                 </a>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/licencias" passHref legacyBehavior>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/licencias')}
-                tooltip="Licencias"
-              >
-                <a>
-                  <KeyRound />
-                  <span>Licencias</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+
+          {/* Licencias - Hidden for 'Usuario' */}
+          {!isUserRole && (
+            <SidebarMenuItem>
+              <Link href="/licencias" passHref legacyBehavior>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/licencias')}
+                  tooltip="Licencias"
+                >
+                  <a>
+                    <KeyRound />
+                    <span>Licencias</span>
+                  </a>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
+
+          {/* Pedidos - visible for all */}
           <SidebarMenuItem>
             <Link href="/pedidos" passHref legacyBehavior>
               <SidebarMenuButton
@@ -106,6 +122,8 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+
+          {/* Entregas - visible for all */}
           <SidebarMenuItem>
             <Link href="/entregas" passHref legacyBehavior>
               <SidebarMenuButton
@@ -120,20 +138,26 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/mobile-lines" passHref legacyBehavior>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/mobile-lines')}
-                tooltip="Líneas Móviles"
-              >
-                <a>
-                  <Smartphone />
-                  <span>Líneas Móviles</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+          
+          {/* Líneas Móviles - Hidden for 'Usuario' */}
+          {!isUserRole && (
+            <SidebarMenuItem>
+              <Link href="/mobile-lines" passHref legacyBehavior>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/mobile-lines')}
+                  tooltip="Líneas Móviles"
+                >
+                  <a>
+                    <Smartphone />
+                    <span>Líneas Móviles</span>
+                  </a>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
+
+          {/* Escanear Código - visible for all */}
            <SidebarMenuItem>
             <Link href="/scan" passHref legacyBehavior>
               <SidebarMenuButton
@@ -148,38 +172,45 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/users" passHref legacyBehavior>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/users')}
-                tooltip="Usuarios"
-              >
-                <a>
-                  <Users />
-                  <span>Usuarios</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+
+          {/* Usuarios - Hidden for 'Usuario' */}
+          {!isUserRole && (
+            <SidebarMenuItem>
+              <Link href="/users" passHref legacyBehavior>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/users')}
+                  tooltip="Usuarios"
+                >
+                  <a>
+                    <Users />
+                    <span>Usuarios</span>
+                  </a>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href="/settings" passHref legacyBehavior>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/settings')}
-                tooltip="Configuración"
-              >
-                <a>
-                  <Settings />
-                  <span>Configuración</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+          {/* Configuración - Hidden for 'Usuario' */}
+          {!isUserRole && (
+            <SidebarMenuItem>
+              <Link href="/settings" passHref legacyBehavior>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/settings')}
+                  tooltip="Configuración"
+                >
+                  <a>
+                    <Settings />
+                    <span>Configuración</span>
+                  </a>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem className="md:hidden">
               <SidebarTrigger tooltip="Alternar barra lateral" />
           </SidebarMenuItem>

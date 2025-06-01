@@ -3,13 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Settings as SettingsIcon, Users as UsersIcon, UserCheck, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Users as UsersIcon, UserCheck, Loader2, UserPlus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { User, UserRole } from '@/types/user';
 import { getAllUsers, updateUser, userRoles } from '@/lib/user-data';
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -69,8 +70,15 @@ export default function SettingsPage() {
       <div className="grid gap-6">
          <Card>
             <CardHeader>
-               <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5"/> Gestión de Roles de Usuario</CardTitle>
-               <CardDescription>Asigna roles a los usuarios para definir sus permisos (la lógica de permisos se implementará en futuras versiones).</CardDescription>
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5"/> Gestión de Roles de Usuario</CardTitle>
+                <Link href="/users/add" passHref>
+                  <Button variant="outline">
+                    <UserPlus className="mr-2 h-4 w-4" /> Añadir Nuevo Usuario
+                  </Button>
+                </Link>
+              </div>
+               <CardDescription>Asigna roles a los usuarios para definir sus permisos. La lógica de autorización completa se implementará en futuras versiones. Actualmente, solo el rol 'Usuario' tiene restricciones visuales simuladas.</CardDescription>
             </CardHeader>
              <CardContent>
                 {isLoading ? (

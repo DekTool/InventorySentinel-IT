@@ -1,5 +1,5 @@
 
-"use client"; // Keep as client component for search/filter interactivity later
+"use client"; 
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useEffect, useState, useMemo } from "react";
 import type { InventoryItem } from "@/types/inventory";
 import { getAllInventoryItems } from "@/lib/inventory-data";
+import { MOCKED_CURRENT_USER_ROLE } from "@/lib/user-data"; // Import mock role
 
 export default function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -18,7 +19,11 @@ export default function InventoryPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const items = await getAllInventoryItems();
+      let items = await getAllInventoryItems();
+      // If the mocked role is 'Usuario', filter for "En Stock" items only
+      if (MOCKED_CURRENT_USER_ROLE === 'Usuario') {
+        items = items.filter(item => item.status === 'En Stock');
+      }
       setInventoryItems(items);
       setIsLoading(false);
     };
@@ -26,15 +31,25 @@ export default function InventoryPage() {
   }, []);
 
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return inventoryItems;
+    let itemsToFilter = inventoryItems;
+    // If the role is 'Usuario', ensure we are starting from the already-filtered "En Stock" items
+    // This check is mostly redundant if useEffect already filters, but good for clarity.
+    if (MOCKED_CURRENT_USER_ROLE === 'Usuario') {
+        itemsToFilter = inventoryItems.filter(item => item.status === 'En Stock');
     }
-    return inventoryItems.filter(item =>
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.assignedTo && item.assignedTo.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      item.type.toLowerCase().includes(searchTerm.toLowerCase())
+
+    if (!searchTerm.trim()) {
+      return itemsToFilter;
+    }
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return itemsToFilter.filter(item =>
+      item.id.toLowerCase().includes(lowerSearchTerm) ||
+      item.name.toLowerCase().includes(lowerSearchTerm) ||
+      item.barcode.toLowerCase().includes(lowerSearchTerm) ||
+      (item.assignedTo && item.assignedTo.toLowerCase().includes(lowerSearchTerm)) ||
+      item.type.toLowerCase().includes(lowerSearchTerm) ||
+      item.status.toLowerCase().includes(lowerSearchTerm) // Allow searching by status for all roles
     );
   }, [inventoryItems, searchTerm]);
 
@@ -43,16 +58,18 @@ export default function InventoryPage() {
     <div className="flex flex-col h-full p-4 md:p-8">
       <header className="mb-6 flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-3xl font-bold tracking-tight text-primary">Gestión de Inventario</h1>
-        <Link href="/inventory/add" passHref>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Equipo
-          </Button>
-        </Link>
+        {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && ( // Hide "Add New" button for 'Usuario' role
+          <Link href="/inventory/add" passHref>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Equipo
+            </Button>
+          </Link>
+        )}
       </header>
 
       <div className="mb-4 flex items-center gap-2">
         <Input
-          placeholder="Buscar por Etiqueta, Nombre, Código de Barras..."
+          placeholder={MOCKED_CURRENT_USER_ROLE === 'Usuario' ? "Buscar en equipos en stock..." : "Buscar por Etiqueta, Nombre, Código de Barras..."}
           className="max-w-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -77,7 +94,7 @@ export default function InventoryPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Asignado A</TableHead>
+                {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && <TableHead>Asignado A</TableHead>}
                 <TableHead>Código Barras</TableHead>
                 <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
@@ -99,7 +116,7 @@ export default function InventoryPage() {
                       {item.status}
                     </span>
                   </TableCell>
-                  <TableCell>{item.assignedTo || 'N/A'}</TableCell>
+                  {MOCKED_CURRENT_USER_ROLE !== 'Usuario' && <TableCell>{item.assignedTo || 'N/A'}</TableCell>}
                   <TableCell>{item.barcode}</TableCell>
                   <TableCell>
                     <Link href={`/inventory/${item.id}`} passHref>
@@ -110,8 +127,11 @@ export default function InventoryPage() {
               ))}
               {filteredItems.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    No se encontraron elementos en el inventario que coincidan con la búsqueda o no hay equipos registrados.
+                  <TableCell colSpan={MOCKED_CURRENT_USER_ROLE !== 'Usuario' ? 7 : 6} className="h-24 text-center">
+                    {MOCKED_CURRENT_USER_ROLE === 'Usuario' 
+                      ? "No se encontraron equipos en stock que coincidan con la búsqueda o no hay equipos en stock."
+                      : "No se encontraron elementos en el inventario que coincidan con la búsqueda o no hay equipos registrados."
+                    }
                   </TableCell>
                 </TableRow>
               )}
