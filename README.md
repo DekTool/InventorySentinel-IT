@@ -1,5 +1,3 @@
-# Firebase Studio
+# INVENTORY SENTINEL IT DOCUMENTAL 
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+https://9000-idx-studio-1746385500443.cluster-6frnii43o5blcu522sivebzpii.cloudworkstations.dev/?monospaceUid=859957
